@@ -1,0 +1,295 @@
+ :root{
+  --primary-map:#83c5be;
+  --accent-map: #006d77;
+  --background-map: #edf6f9;
+  --section-color-map: #fff1e6;
+  --text-color-map: rgb(63, 21, 21);
+  --text-color-map2: rgb(243, 229, 229);
+  --direction-active: #e0f0ff;
+ }
+ /* Global Reset & Base Styles */
+ * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+ html, body {
+   height: 100%;
+   overflow: hidden; 
+  color: var(--text-color-map);
+}
+ 
+ /* Sidebar with Action Icons */
+ #sidebar {
+   position: fixed;
+   left: 0;
+   top: 0;
+   width: 80px;
+   height: 100vh;
+   background: var(--section-color-map);
+   border-right: 2px solid #ccc;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   padding: 10px;
+   transition: width 0.3s ease-in-out;
+   z-index: 1000;
+ }
+ #sidebar button {
+   width: 60px;
+   height: 60px;
+   margin: 10px 0;
+   font-size: 24px;
+   background: var(--primary-map);
+   border: none;
+   border-radius: 50%;
+   cursor: pointer;
+   transition: background 0.2s;
+ }
+ #sidebar button:hover { background: var(--accent-map); }
+ 
+ /* Extended Sidebar (collapsed by default) */
+ #route-sidebar {
+   position: fixed;
+   left: 80px;
+   top: 0;
+   width: 0; /* Collapsed initially */
+   height: 100vh;
+   background: var(--background-map);
+   border-right: 2px solid #ccc;
+   padding: 0; /* No padding when collapsed */
+   overflow: hidden;
+   z-index: 1000;
+   transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+ }
+ /* Expanded state */
+ #route-sidebar.show {
+   width: 350px;
+   padding: 20px;
+   overflow-y: auto;
+ }
+ 
+ /* Form & Controls */
+ #planning-container form {
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+   margin-bottom: 20px;
+ }
+
+ #planning-container input,
+ #planning-container select {
+  background: var(--section-color-map);
+   width: 100%;
+   padding: 8px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+ }
+ /* Control Buttons Container: two buttons side by side */
+ #control-buttons {
+   display: flex;
+   gap: 10px;
+   margin-bottom: 20px;
+ }
+ #control-buttons button {
+   flex: 1;
+   padding: 10px;
+   background: var(--primary-map);
+   color: var(--text-color-map);
+   border: none;
+   cursor: pointer;
+   border-radius: 5px;
+   transition: background 0.2s, box-shadow 0.2s;
+ }
+ #control-buttons button:hover {
+   background: var(--accent-map);
+   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+ }
+ 
+ /* Alternate Routes List */
+ #alternatives-container { 
+  margin-bottom: 20px;
+ }
+ .alternative-route {
+  background: var(--section-color-map);
+   padding: 8px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+   margin-bottom: 5px;
+   cursor: pointer;
+   transition: background 0.2s;
+ }
+ .alternative-route:hover { 
+  background: var(--section-color-map);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transform: scale(1.02);
+}
+.alternative-route.selected {
+  border-color: var(--text-color-map);
+  border-width: 5px;
+
+}
+ /* Travel Summary Section */
+ #travel-summary { margin-bottom: 20px; }
+ .summary-detail { margin: 5px 0; font-size: 14px; }
+ 
+ /* Traffic Toggle */
+ #traffic-toggle-container {
+   margin-bottom: 20px;
+ }
+ #traffic-toggle-container label {
+   font-size: 14px;
+   cursor: pointer;
+ }
+ 
+ /* Directions List Container */
+ #directions-list {
+  background: var(--section-color-map);
+   margin-bottom: 20px;
+   max-height: 250px;
+   overflow-y: auto;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+   display: none; /* Hidden until toggled */
+   padding: 10px;
+ }
+ .direction-step {
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   padding: 8px;
+   border-bottom: 1px solid #eee;
+ }
+ .direction-step.active {
+   background: var(--direction-active);
+   font-weight: bold;
+ }
+ .icon-container {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   width: 40px;
+ }
+ .icon-container svg {
+   width: 24px;
+   height: 24px;
+ }
+ .duration-text {
+   font-size: 10px;
+   color: #555;
+   margin-top: 2px;
+ }
+ .instruction-text {
+   flex: 1;
+   font-size: 14px;
+ }
+ 
+ /* Navigation Instructions Section */
+ #nav-container {
+   border-top: 1px solid #ccc;
+   padding-top: 10px;
+   display: none; /* Hidden by default */
+ }
+ #nav-container h3 { margin-bottom: 10px; font-size: 18px; color: #007bff; }
+ #nav-container p { margin-bottom: 10px; font-size: 16px; }
+ 
+ /* Voice Guidance Toggle */
+ #voice-toggle-container {
+   display: flex;
+   align-items: center;
+   gap: 5px;
+   margin-bottom: 10px;
+ }
+ 
+ /* Map Container */
+ #map {
+   position: absolute;
+   top: 0;
+   left: 80px; /* Initially, only the icon sidebar is visible */
+   width: calc(100% - 80px);
+   height: 100vh;
+   transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
+ }
+ 
+ /* GPS Info Overlay */
+ #gps-info {
+   position: absolute;
+   top: 10px;
+   right: 10px;
+   background: rgba(0,0,0,0.7);
+   padding: 10px;
+   border-radius: 5px;
+   z-index: 1500;
+   font-size: 14px;
+   color: #fff;
+   line-height: 1.4;
+ }
+ #gps-info h2 { font-size: 16px; margin-bottom: 5px; }
+ 
+ /* Dynamic Stop Input Items */
+ .stop-item {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+ }
+ .stop {
+   flex: 1;
+   padding: 8px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+ }
+ .stop-item svg {
+   width: 20px;
+   height: 20px;
+   cursor: pointer;
+   fill: red;
+ }
+
+ 
+ /* Find Route button */
+ #planning-container form button[type="submit"] {
+   background-color: var(--primary-map);
+   color: var(--text-color-map);
+   border: none;
+   border-radius: 5px;
+   padding: 10px 15px;
+   font-size: 16px;
+   font-weight: bold;
+   cursor: pointer;
+   transition: background-color 0.3s ease;
+ }
+ #planning-container form button[type="submit"]:hover {
+   background-color: var(--accent-map);
+ }
+ 
+ /* Add Stop button */
+ #addstop {
+   background-color: var(--primary-map);
+   color: var(--text-color-map);
+   border: none;
+   border-radius: 5px;
+   padding: 8px 12px;
+   font-size: 14px;
+   font-weight: bold;
+   cursor: pointer;
+   transition: background-color 0.3s ease;
+   margin-top: 5px;
+ }
+ #addstop:hover {
+   background-color: var(--accent-map);
+ }
+
+ #stops-container > div > input{
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 5px;
+ }
+
+ input[type="text"] {
+   width: 100%;
+   padding: 8px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+   margin-bottom: 10px;
+   font-size: 14px;
+   color: var(--text-color-map);
+ }

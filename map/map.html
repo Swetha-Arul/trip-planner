@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Route & Navigation</title>
+  <link rel="stylesheet" href="map.css" />
+  <script src="../config.js"></script>
+  <script src="map.js"></script>
+  <link rel="stylesheet" href="../darkmode/darkmode.css" /> 
+</head>
+<body>
+  <button id="theme-switch">
+    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#"><path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#"><path d="M480-280q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Z"/></svg>
+  </button>
+  <div id="sidebar">
+    <button id="route-toggle" aria-label="Show Route Planner">🛣️</button>
+    <button id="w-icon" aria-label="Show Weather">🌦️</button>
+    <button id="hotel-icon" aria-label="Show Hotels">🏨</button>
+    <button id="restaurant-icon" aria-label="Show Restaurants">🍽️</button>
+    <button id="fuel-icon" aria-label="Show Fuel Stations">⛽</button>
+    <button id="tourist-icon" aria-label="Show Tourist Attractions">🏞️</button>
+  </div>
+  <div id="route-sidebar">
+    <div id="planning-container">
+      <form id="form">
+        <label for="start">Start:</label>
+        <input type="text" id="start" placeholder="Enter start location" autocomplete="off">
+                 
+        <div id="stops-container"></div>
+        <button type="button" id="addstop" aria-label="Add Stop">➕ Add Stop</button>
+                 
+        <label for="end">End:</label>
+        <input type="text" id="end" placeholder="Enter destination" autocomplete="off">
+                 
+        <button type="submit">Find Route</button>
+      </form>
+    </div>
+         
+  <div id="route-results" style="display: none;">
+    <div id="alternatives-container"></div>
+    <div id="travel-summary">
+      <h3>Total Travel Info</h3>
+      <div id="total-info" class="summary-detail">Distance: -- | Time: --</div>
+      <div id="traffic-toggle-container">
+        <input type="checkbox" id="traffic-toggle">
+        <label for="traffic-toggle">Traffic</label>
+      </div>
+      <div id="control-buttons">
+        <button id="nav-toggle">Start Navigation</button>
+      </div>
+    </div>
+    
+    <!-- Navigation Instructions Section -->
+    <div id="nav-container">
+      <div id="voice-toggle-container">
+        <input type="checkbox" id="voice-toggle">
+        <label for="voice-toggle">Voice Guidance</label>
+      </div>
+      <p id="nav-instruction"></p>
+      <p id="nav-details"></p>
+    </div>
+    
+    <div id="directions-list"></div>
+  </div>
+
+  </div>
+     
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  
+  <div id="gps-info">
+    <h2>GPS Info</h2>
+    <p id="lat">Lat: --</p>
+    <p id="lng">Lng: --</p>
+    <p id="speed">Speed: --</p>
+    <p id="accuracy">Accuracy: --</p>
+  </div>
+  <script type="text/javascript" src="../darkmode/darkmodemap.js" defer></script>
+</body>
+</html>
+
