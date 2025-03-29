@@ -1,0 +1,74 @@
+:root {
+    --primary:#83c5be;
+    --accent: #006d77;
+    --background: #edf6f9;
+    --section-color: #fff1e6;
+    --text-color: rgb(63, 21, 21);
+    /**/
+    --accent-color: #006d77;
+    --base-color: #fff1e6;
+    --text1-color: #006d77;
+    --input-color: #F3F0FF;
+
+    /**/
+    --primary-map:#83c5be;
+    --accent-map: #006d77;
+    --background-map: #edf6f9;
+    --section-color-map: #fff1e6;
+    --text-color-map: rgb(63, 21, 21);
+    --text-color-map2: rgb(243, 229, 229);
+    --direction-active: #e0f0ff;
+    /**/
+    --font-main: "Poppins", sans-serif;
+    --font-secondary: "Montserrat", sans-serif;
+    --biggest-font-size: 2.75rem;
+    --font-regular: 400;
+    --normal-font-size: .938rem;
+  }
+  .darkmode{
+    --primary:#3b7d76;
+    --accent: #8af5ff;
+    --background: #07373c;
+    --section-color: #292929;
+    --text-color: rgb(243, 229, 229);
+    --accent-color: #8af5ff;
+    --base-color: #292929;
+    --text1-color: #8af5ff;
+    --input-color: #b8b5c4;
+    --primary-map:#3b7d76;
+    --accent-map: #8af5ff;
+    --background-map: #07373c;
+    --section-color-map: #292929;
+    --text-color-map: rgb(243, 229, 229);
+    --text-color-map2: rgb(63, 21, 21);
+    --direction-active: #66acee;
+}
+
+#theme-switch{
+    height: 50px;
+    width: 50px;
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+#theme-switch svg{
+    fill: var(--background);
+}
+#theme-switch svg:last-child{
+    display: none;
+}
+
+.darkmode #theme-switch svg:first-child{
+    display: none;
+}
+.darkmode #theme-switch svg:last-child{
+    display: block;
+}
