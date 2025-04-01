@@ -7,9 +7,6 @@ function loadGoogleMapsApi() {
   document.head.appendChild(script);
 }
 loadGoogleMapsApi();
-
- 
- // Helper function to return an icon based on the maneuver.
        
   // Global Variables
   let map, directionsService, directionsResult;
@@ -239,9 +236,8 @@ loadGoogleMapsApi();
         
         div.addEventListener("click", () => {
           selectRoute(index);
-          // Remove "selected" class from all routes
           document.querySelectorAll(".alternative-route").forEach(el => el.classList.remove("selected"));
-          // Add "selected" class to the clicked route
+          
           div.classList.add("selected");
           
           if (isNavigating) {
@@ -254,8 +250,6 @@ loadGoogleMapsApi();
       });
     }
   }
-  
-       
   // Select a route, update map, travel summary, and build directions list.
   function selectRoute(index) {
     selectedRouteIndex = index;
@@ -267,8 +261,8 @@ loadGoogleMapsApi();
       const polylineOptions = {
         path: route.overview_path,
         strokeColor: "#007bff",
-        strokeOpacity: (i === index) ? 1 : 0.3, // full opacity for selected route
-        strokeWeight: (i === index) ? 5 : 3, // thicker line for selected route
+        strokeOpacity: (i === index) ? 1 : 0.3, 
+        strokeWeight: (i === index) ? 5 : 3, 
         map: map
       };
       const polyline = new google.maps.Polyline(polylineOptions);
@@ -327,9 +321,7 @@ loadGoogleMapsApi();
         map: map,
         title: "Your Location",
         icon: {
-          // Using a car icon image URL (you can replace it with your own)
           url: "../pics/car2.png",
-          // Adjust the size as needed
           scaledSize: new google.maps.Size(40, 60),
         }
       });
@@ -479,13 +471,17 @@ loadGoogleMapsApi();
        
   // Start navigation: show navigation instructions and begin updates.
   function startNavigation() {
+    if (!currentMarker) {
+      alert("Live location not detected. Please ensure location services are enabled.");
+      return;
+    }
     isNavigating = true;
     document.getElementById("nav-toggle").textContent = "Stop Navigation";
     document.getElementById("nav-container").style.display = "block";
     updateNavigation();
     navigationInterval = setInterval(updateNavigation, 2000);
   }
-       
+      
   function stopNavigation() {
     clearInterval(navigationInterval);
     isNavigating = false;
@@ -497,13 +493,11 @@ loadGoogleMapsApi();
   }
 
   function showGasStations() {
-    // Ensure a route is available (i.e. after the user has calculated a route)
     if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
       alert("Please calculate a route first.");
       return;
     }
 
-    // Use the selected route's path to define the search bounds.
     const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
     const bounds = new google.maps.LatLngBounds();
     routePath.forEach(point => bounds.extend(point));
@@ -536,9 +530,7 @@ loadGoogleMapsApi();
           fuelMarkers.push(marker);
 
           // Create an info window that shows the station's details.
-          const infowindow = new google.maps.InfoWindow({
-            content: `<strong>${place.name}</strong><br>${place.vicinity}`,
-          });
+          const infowindow = createCustomInfoWindow(place);
 
           marker.addListener("click", () => {
             infowindow.open(map, marker);
@@ -549,250 +541,254 @@ loadGoogleMapsApi();
   }
 
 
-function showRestaurantsAlongRoute() {
-// Toggle: if markers exist, remove them.
-if (restaurantMarkers.length > 0) {
-  restaurantMarkers.forEach(marker => marker.setMap(null));
-  restaurantMarkers = [];
-  return;
-}
-
-// Check if a route exists.
-if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
-  alert("Please calculate a route first.");
-  return;
-}
-
-// Retrieve the overview path of the selected route.
-const path = directionsResult.routes[selectedRouteIndex].overview_path;
-
-// Create a PlacesService instance.
-const placesService = new google.maps.places.PlacesService(map);
-
-// Set a search radius (in meters).
-const radius = 500;
-
-// Use a Set to keep track of place_ids and avoid duplicates.
-const foundPlaceIds = new Set();
-
-// Sample a few points along the route.
-// For example, divide the path into 10 segments.
-const sampleCount = 10;
-const sampleInterval = Math.max(Math.floor(path.length / sampleCount), 1);
-
-for (let i = 0; i < path.length; i += sampleInterval) {
-  const location = path[i];
-  const request = {
-    location: location,
-    radius: radius,
-    type: "restaurant"
-  };
+  function showRestaurantsAlongRoute() {
+    if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
+      alert("Please calculate a route first.");
+      return;
+    }
+    const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
+    const bounds = new google.maps.LatLngBounds();
+    routePath.forEach(point => bounds.extend(point));
   
-  placesService.nearbySearch(request, (results, status) => {
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-      results.forEach(place => {
-        // Only add marker if this restaurant hasn't been added already.
-        if (!foundPlaceIds.has(place.place_id)) {
-          foundPlaceIds.add(place.place_id);
+    const request = {
+      bounds: bounds,
+      type: "restaurant",
+    };
+  
+    const placesService = new google.maps.places.PlacesService(map);
+  
+    restaurantMarkers.forEach(marker => marker.setMap(null));
+    restaurantMarkers = [];
+  
+    placesService.nearbySearch(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        results.forEach(place => {
           const marker = new google.maps.Marker({
             position: place.geometry.location,
             map: map,
             icon: {
               url: "https://maps.google.com/mapfiles/kml/shapes/dining.png",
-              scaledSize: new google.maps.Size(30, 30)
+              scaledSize: new google.maps.Size(30, 30),
             },
             title: place.name,
           });
           restaurantMarkers.push(marker);
-          
-          const infowindow = new google.maps.InfoWindow({
-            content: `<strong>${place.name}</strong><br>${place.vicinity}`,
-          });
-          
+  
+          const infowindow = createCustomInfoWindow(place, "restaurant");
+  
           marker.addListener("click", () => {
             infowindow.open(map, marker);
           });
-        }
-      });
-    }
-  });
-}
-}
-
-function showHotelsAlongRoute() {
-// Toggle: if markers exist, remove them.
-if (hotelMarkers.length > 0) {
-  hotelMarkers.forEach(marker => marker.setMap(null));
-  hotelMarkers = [];
-  return;
-}
-
-if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
-  alert("Please calculate a route first.");
-  return;
-}
-
-// Retrieve the overview path of the selected route.
-const path = directionsResult.routes[selectedRouteIndex].overview_path;
-
-// Create a PlacesService instance.
-const placesService = new google.maps.places.PlacesService(map);
-
-// Set a search radius (in meters) for hotels.
-const radius = 500;
-
-// Use a Set to keep track of place_ids to avoid duplicates.
-const foundPlaceIds = new Set();
-
-// Sample points along the route.
-const sampleCount = 10;
-const sampleInterval = Math.max(Math.floor(path.length / sampleCount), 1);
-
-for (let i = 0; i < path.length; i += sampleInterval) {
-  const location = path[i];
-  const request = {
-    location: location,
-    radius: radius,
-    type: "lodging"  // "lodging" is the type for hotels.
-  };
+        });
+      }
+    });
+  }
   
-  placesService.nearbySearch(request, (results, status) => {
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-      results.forEach(place => {
-        // Add the hotel marker only if it hasn't been added already.
-        if (!foundPlaceIds.has(place.place_id)) {
-          foundPlaceIds.add(place.place_id);
+
+  function showHotelsAlongRoute() {
+    if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
+      alert("Please calculate a route first.");
+      return;
+    }
+    const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
+    const bounds = new google.maps.LatLngBounds();
+    routePath.forEach(point => bounds.extend(point));
+  
+    const request = {
+      bounds: bounds,
+      type: "lodging",
+    };
+  
+    const placesService = new google.maps.places.PlacesService(map);
+  
+    hotelMarkers.forEach(marker => marker.setMap(null));
+    hotelMarkers = [];
+  
+    placesService.nearbySearch(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        results.forEach(place => {
           const marker = new google.maps.Marker({
             position: place.geometry.location,
             map: map,
             icon: {
               url: "https://maps.google.com/mapfiles/kml/shapes/lodging.png",
-              scaledSize: new google.maps.Size(30, 30)
+              scaledSize: new google.maps.Size(30, 30),
             },
             title: place.name,
           });
           hotelMarkers.push(marker);
-          
-          // Create an info window to show details.
-          const infowindow = new google.maps.InfoWindow({
-            content: `<strong>${place.name}</strong><br>${place.vicinity}`,
-          });
-          
+  
+          const infowindow = createCustomInfoWindow(place, "hotel");
+  
           marker.addListener("click", () => {
             infowindow.open(map, marker);
           });
-        }
-      });
+        });
+      }
+    });
+  }
+  
+// Helper function to create a custom info window
+function createCustomInfoWindow(place, type) {
+  let rating = place.rating ? `⭐ ${place.rating} / 5` : "No ratings available";
+  let vegStatus = "Unknown"; 
+
+  if (type === "restaurant") {
+    if (place.name.toLowerCase().includes("veg")) {
+      vegStatus = "Vegetarian";
+    } else if (place.name.toLowerCase().includes("non-veg") || place.name.toLowerCase().includes("chicken") || place.name.toLowerCase().includes("meat")) {
+      vegStatus = "Non-Vegetarian";
+    } else {
+      vegStatus = "Mixed";
     }
+  }
+
+  const content = `
+    <div class="custom-infowindow">
+      <h3 class="infowindow-title">${place.name}</h3>
+      <p class="infowindow-address">${place.vicinity || 'Address not available'}</p>
+      ${type === "restaurant" ? `<p class="infowindow-type"><strong>Type:</strong> ${vegStatus}</p>` : ""}
+      <p class="infowindow-rating"><strong>Rating:</strong> ${rating}</p>
+    </div>
+  `;
+  return new google.maps.InfoWindow({
+    content: content
   });
 }
-}
-  document.addEventListener("DOMContentLoaded", () => {
-    initMap();
-    document.getElementById("form").addEventListener("submit", calculateRoute);
+document.addEventListener("DOMContentLoaded", () => {
+  initMap();
+  document.getElementById("form").addEventListener("submit", calculateRoute);
 
-    // Traffic toggle event listener.
-    document.getElementById("traffic-toggle").addEventListener("change", function() {
-      if (this.checked) {
-        trafficLayer.setMap(map);
-      } else {
-        trafficLayer.setMap(null);
-      }
+  // Traffic toggle event listener.
+  document.getElementById("traffic-toggle").addEventListener("change", function() {
+    if (this.checked) {
+      trafficLayer.setMap(map);
+    } else {
+      trafficLayer.setMap(null);
+    }
+  });
+
+  // Dynamic stop input listener.
+  document.getElementById("addstop").addEventListener("click", () => {
+    const stopsContainer = document.getElementById("stops-container");
+    const stopItem = document.createElement("div");
+    stopItem.classList.add("stop-item");
+
+    const stopInput = document.createElement("input");
+    stopInput.type = "text";
+    stopInput.classList.add("stop");
+    stopInput.placeholder = "Enter stop location";
+    stopInput.setAttribute("autocomplete", "off");
+    new google.maps.places.Autocomplete(stopInput);
+
+    const removeIcon = document.createElement("div");
+    removeIcon.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true">
+        <path fill="red" d="m256-200-56-56 224-224-224-244 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+      </svg>
+    `;
+    removeIcon.style.cursor = "pointer";
+    removeIcon.addEventListener("click", () => stopItem.remove());
+
+    stopItem.appendChild(stopInput);
+    stopItem.appendChild(removeIcon);
+    stopsContainer.appendChild(stopItem);
+  });
+
+  // Route sidebar toggle listener.
+  document.getElementById("route-toggle").addEventListener("click", () => {
+    const routeSidebar = document.getElementById("route-sidebar");
+    routeSidebar.classList.toggle("show");
+
+    if (routeSidebar.classList.contains("show")) {
+      document.getElementById("map").style.left = "430px";
+      document.getElementById("map").style.width = "calc(100% - 430px)";
+    } else {
+      document.getElementById("map").style.left = "80px";
+      document.getElementById("map").style.width = "calc(100% - 80px)";
+    }
+
+    const center = map.getCenter();
+    google.maps.event.trigger(map, "resize");
+    map.setCenter(center);
+  });
+
+  // Navigation toggle.
+  document.getElementById("nav-toggle").addEventListener("click", () => {
+    if (!isNavigating) {
+      startNavigation();
+    } else {
+      stopNavigation();
+    }
+  });
+
+  // Geolocation tracking.
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(updateCurrentPosition, handleGeolocationError, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
     });
+  } else {
+    alert("Geolocation is not supported by your browser.");
+  }
 
-    // Dynamic stop input listener.
-    document.getElementById("addstop").addEventListener("click", () => {
-      const stopsContainer = document.getElementById("stops-container");
-      const stopItem = document.createElement("div");
-      stopItem.classList.add("stop-item");
+  // Fuel, restaurant, hotel button listeners.
+  document.getElementById("fuel-icon").addEventListener("click", () => {
+    if (fuelMarkers.length > 0) {
+      fuelMarkers.forEach(marker => marker.setMap(null));
+      fuelMarkers = [];
+    } else {
+      showGasStations();
+    }
+  });
+  document.getElementById("restaurant-icon").addEventListener("click", () => {
+    if (restaurantMarkers.length > 0) {
+      restaurantMarkers.forEach(marker => marker.setMap(null));
+      restaurantMarkers = [];
+    } else {
+      showRestaurantsAlongRoute();
+    }
+  });
+  document.getElementById("hotel-icon").addEventListener("click", () => {
+    if (hotelMarkers.length > 0) {
+      hotelMarkers.forEach(marker => marker.setMap(null));
+      hotelMarkers = [];
+    } else {
+      showHotelsAlongRoute();
+    }
+  });
 
-      const stopInput = document.createElement("input");
-      stopInput.type = "text";
-      stopInput.classList.add("stop");
-      stopInput.placeholder = "Enter stop location";
-      stopInput.setAttribute("autocomplete", "off");
-      new google.maps.places.Autocomplete(stopInput);
+  // ---------------- Sidebar Active State Logic ----------------
 
-      const removeIcon = document.createElement("div");
-      removeIcon.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true">
-          <path fill="red" d="m256-200-56-56 224-224-224-244 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
-        </svg>
-      `;
-      removeIcon.style.cursor = "pointer";
-      removeIcon.addEventListener("click", () => stopItem.remove());
+  // IDs for buttons that require a computed route.
+  const routeRequiredIds = ['fuel-icon', 'restaurant-icon', 'hotel-icon', 'tourist-icon'];
 
-      stopItem.appendChild(stopInput);
-      stopItem.appendChild(removeIcon);
-      stopsContainer.appendChild(stopItem);
-    });
+  // Helper for route button highlighting.
+  function toggleRouteButtonHighlight() {
+    const routeBtn = document.getElementById("route-toggle");
+    routeBtn.classList.toggle("active");
+  }
 
-    document.getElementById("route-toggle").addEventListener("click", () => {
-      const routeSidebar = document.getElementById("route-sidebar");
-      routeSidebar.classList.toggle("show");
-
-      if (routeSidebar.classList.contains("show")) {
-        document.getElementById("map").style.left = "430px";
-        document.getElementById("map").style.width = "calc(100% - 430px)";
-      } else {
-        document.getElementById("map").style.left = "80px";
-        document.getElementById("map").style.width = "calc(100% - 80px)";
-      }
-      
-      const center = map.getCenter();
-      google.maps.event.trigger(map, 'resize');
-      map.setCenter(center);
-    });
-           
-    // Toggle directions list visibility.
-           
-    // Navigation toggle.
-    document.getElementById("nav-toggle").addEventListener("click", () => {
-      if (!isNavigating) {
-        startNavigation();
-      } else {
-        stopNavigation();
-      }
-    });
-
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(updateCurrentPosition, handleGeolocationError, {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 10000
+  // Handle sidebar buttons.
+  document.querySelectorAll("#sidebar button").forEach(btn => {
+    // Handle route button separately.
+    if (btn.id === "route-toggle") {
+      btn.addEventListener("click", () => {
+        // Always toggle active state for route button.
+        toggleRouteButtonHighlight();
       });
     } else {
-      alert("Geolocation is not supported by your browser.");
+      // For other buttons.
+      btn.addEventListener("click", () => {
+        // If the button requires a route and no route is computed, alert and do not highlight.
+        if (routeRequiredIds.includes(btn.id) && !directionsResult) {
+          alert("Please calculate a route first.");
+          btn.classList.remove("active");
+          return;
+        }
+        btn.classList.toggle("active");
+      });
     }
-    document.getElementById("fuel-icon").addEventListener("click", () => {
-      // If fuel markers exist, remove them.
-      if (fuelMarkers.length > 0) {
-          fuelMarkers.forEach(marker => marker.setMap(null));
-          fuelMarkers = [];
-      } else {
-          // Otherwise, show gas stations.
-          showGasStations();
-      }
-    });
-    document.getElementById("restaurant-icon").addEventListener("click", () => {
-      // If restaurant markers exist, remove them.
-      if (restaurantMarkers.length > 0) {
-          restaurantMarkers.forEach(marker => marker.setMap(null));
-          restaurantMarkers = [];
-      } else {
-          // Otherwise, show restaurants.
-          showRestaurantsAlongRoute();
-      }
-    });
-    document.getElementById("hotel-icon").addEventListener("click", () => {
-      // If restaurant markers exist, remove them.
-      if (hotelMarkers.length > 0) {
-          hotelMarkers.forEach(marker => marker.setMap(null));
-          hotelMarkers = [];
-      } else {
-          // Otherwise, show restaurants.
-          showHotelsAlongRoute();
-      }
-    }); 
   });
-
+});

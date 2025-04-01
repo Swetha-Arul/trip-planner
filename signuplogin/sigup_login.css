@@ -17,26 +17,40 @@ html{
 }
 body{
   display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin:0;
+  background-color: var(--base-color);
+}
+
+.container{
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  width: 100%;
+}
+
+.left{
+  flex: 1;
+  display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-image: url(background1.jpg);
-  background-size: cover;
-  background-position: center;
-  overflow: hidden;
-  margin:0;
+}
+
+.left img{
+  max-width: 100%;
+  max-height: 98vh;
+  border-radius: 20px;
 }
 .wrapper{
-  box-sizing: border-box;
+  flex: 1;
   background-color: var(--base-color);
-  width: max(40%, 600px);
-  padding: 20px;
-  border-radius: 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  box-shadow: 0px 5px 15px rgba(0, 0, 0,0.2);
+  align-items: center;
+  padding: 2rem;
+  box-shadow: none;
 }
 h1{
   font-size: 3rem;
@@ -138,32 +152,4 @@ form div.incorrect input{
 }
 #error-message{
   color:#f06272;
-}
-  
-
-/*tempp*/
-body{
-  background-color: var(--base-color);
-}
-img{
-  border-radius: 20px;
-  border: 6px solid var(--base-color);
-}
-.wrapper{
-
-  align-self: flex-end;
-  margin-left: auto;
-  width: 60%;
-  height: 100%;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-form input::placeholder{
-  color: rgb(63, 21, 21);
-}
-form button:hover{
-  background-color: var(--text1-color);
-  transform: scale(1.05);
-  box-shadow: 5px 5px 5px rgba(63, 21, 21, 0.3);
 }
