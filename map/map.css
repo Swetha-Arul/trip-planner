@@ -287,52 +287,7 @@
    color: var(--text-color-map);
  }
 
- .custom-infowindow {
-  font-family: Arial, sans-serif;
-  padding: 10px;
-  max-width: 250px;
-}
 
-.custom-infowindow .infowindow-title {
-  margin: 0 0 5px;
-  font-size: 18px;
-  color: var(--accent-map);
-}
-
-.custom-infowindow .infowindow-address {
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-color-map);
-}
-
-/**/
-.custom-infowindow {
-  font-family: Arial, sans-serif;
-  padding: 10px;
-  max-width: 250px;
-}
-
-.custom-infowindow .infowindow-title {
-  margin: 0 0 5px;
-  font-size: 18px;
-  color: #2c3e50;
-}
-
-.custom-infowindow .infowindow-address {
-  margin: 0;
-  font-size: 14px;
-  color: #7f8c8d;
-}
-
-.custom-infowindow .infowindow-rating {
-  font-size: 14px;
-  color: #27ae60;
-}
-
-.custom-infowindow .infowindow-type {
-  font-size: 14px;
-  color: #c0392b;
-}
 
 #sidebar button.active {
   background: var(--accent-map); 
@@ -345,3 +300,78 @@
 }
 
 
+.custom-infowindow {
+  font-family: Arial, sans-serif;
+  min-width: 220px;
+}
+
+.custom-infowindow .header {
+  padding: 8px;
+  border-radius: 4px 4px 0 0;
+  color: white;
+}
+
+.custom-infowindow .header.restaurant { background: #e91e63; }
+.custom-infowindow .header.hotel { background: #3f51b5; }
+.custom-infowindow .header.gas { background: #ff9800; }
+.custom-infowindow .header.weather { background: #00bcd4; }
+
+.custom-infowindow .content {
+  padding: 12px;
+  font-size: 14px;
+}
+
+.custom-infowindow p {
+  margin: 6px 0;
+}
+
+.rating {
+  color: #ffb300;
+  font-size: 18px;
+  margin: 8px 0;
+}
+
+.weather-icon {
+  font-size: 24px;
+  float: right;
+}
+
+/* Add to your CSS */
+.modal-blur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(5px);
+  display: none;
+  z-index: 1000;
+}
+
+.filter-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  margin: 50px auto;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+}
+
+.filter-section {
+  margin: 15px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.filter-actions {
+  text-align: right;
+  margin-top: 20px;
+}
+
+.filter-actions button {
+  padding: 8px 20px;
+  margin-left: 10px;
+}

@@ -1,3 +1,14 @@
+<?php
+session_start();
+require_once "../db.php"; // Adjust path if needed
+
+if (!isset($_SESSION['user_name'])) {
+    header("Location: ../signuplogin/login.php");
+    exit();
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,6 +92,65 @@
     <p id="speed">Speed: --</p>
     <p id="accuracy">Accuracy: --</p>
   </div>
+
+  <!-- Add to your HTML -->
+<div id="filter-modal" class="modal-blur">
+  <div class="filter-content">
+    <h2>🛑 Route Preferences</h2>
+    <form id="filter-form">
+      <div class="filter-section">
+        <h3>🍽️ Restaurant Filters</h3>
+        <label>
+          <input type="checkbox" id="veg-only"> Vegetarian Only
+        </label>
+        <label>
+          Minimum Rating:
+          <select id="restaurant-rating">
+            <option value="0">Any</option>
+            <option value="3">3★+</option>
+            <option value="4">4★+</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filter-section">
+        <h3>🏨 Hotel Filters</h3>
+        <label>
+          Max Price Level:
+          <select id="hotel-price">
+            <option value="4">Any</option>
+            <option value="1">$ Budget</option>
+            <option value="2">$$ Moderate</option>
+            <option value="3">$$$ Premium</option>
+          </select>
+        </label>
+        <label>
+          Minimum Rating:
+          <select id="hotel-rating">
+            <option value="0">Any</option>
+            <option value="3">3★+</option>
+            <option value="4">4★+</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filter-section">
+        <h3>⛅ Weather Preferences</h3>
+        <label>
+          <input type="checkbox" id="avoid-rain"> Avoid Rainy Areas
+        </label>
+        <label>
+          <input type="checkbox" id="avoid-extremes"> Avoid Extreme Temperatures
+        </label>
+      </div>
+
+      <div class="filter-actions">
+        <button type="button" id="cancel-filter">Cancel</button>
+        <button type="submit">Apply Filters</button>
+      </div>
+    </form>
+  </div>
+</div>
   <script type="text/javascript" src="../darkmode/darkmodemap.js" defer></script>
 </body>
 </html>

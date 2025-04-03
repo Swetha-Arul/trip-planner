@@ -1,13 +1,12 @@
 function loadGoogleMapsApi() {
   const script = document.createElement('script');
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places,geometry`;
   script.defer = true;
   script.async = true;
   script.onload = initMap; // Call initMap after the script loads
   document.head.appendChild(script);
 }
-loadGoogleMapsApi();
-       
+
   // Global Variables
   let map, directionsService, directionsResult;
   let routePolylines = [];
@@ -19,9 +18,29 @@ loadGoogleMapsApi();
   let isNavigating = false;
   let trafficLayer;
   let fuelMarkers = [];
-  let restaurantMarkers = [];
   let hotelMarkers = [];
-       
+  let weatherMarkers = [];
+  let restaurantMarkers = [];
+  let activeFilters = {
+    restaurant: {
+      vegOnly: false,
+      minRating: 0
+    },
+    hotel: {
+      maxPrice: 4,
+      minRating: 0
+    },
+    weather: {
+      avoidRain: false,
+      avoidExtremes: false
+    }
+  };
+
+function clearRestaurantMarkers() {
+  restaurantMarkers.forEach(marker => marker.setMap(null));
+  restaurantMarkers = [];
+}
+
   function getManeuverIcon(maneuver) {
     switch(maneuver) {
       case "turn-left":
@@ -173,6 +192,8 @@ loadGoogleMapsApi();
   document.getElementById("directions-list").style.display = "none";
   
   // Clear any previously added gas station markers.
+  weatherMarkers.forEach(marker => marker.setMap(null));
+  weatherMarkers = [];
   fuelMarkers.forEach(marker => marker.setMap(null));
   fuelMarkers = [];
   restaurantMarkers.forEach(marker => marker.setMap(null));
@@ -492,173 +513,358 @@ loadGoogleMapsApi();
     document.getElementById("voice-toggle").checked = false;
   }
 
-  function showGasStations() {
+  function showWeatherAlongRoute() {
     if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
       alert("Please calculate a route first.");
       return;
     }
-
+  
     const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
-    const bounds = new google.maps.LatLngBounds();
-    routePath.forEach(point => bounds.extend(point));
+    weatherMarkers.forEach(marker => marker.setMap(null));
+    weatherMarkers = [];
+  
+    const displayCount = Math.min(10, routePath.length);
+    const interval = Math.floor(routePath.length / displayCount);
+  
+    for (let i = 0; i < displayCount; i++) {
+      const index = i * interval;
+      const point = routePath[index];
+      const lat = point.lat();
+      const lng = point.lng();
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${WEATHER_API_KEY}&units=metric`;
+  
+      fetch(weatherUrl)
+        .then(response => response.json())
+        .then(data => {
+          // Create weather marker
+          const marker = new google.maps.Marker({
+            position: point,
+            map: map,
+            icon: {
+              url: "https://maps.google.com/mapfiles/kml/shapes/partly_cloudy.png",
+              scaledSize: new google.maps.Size(40, 40)
+            },
+            title: "Weather Info"
+          });
+  
+          // Prepare weather data
+          const weatherData = {
+            name: "Weather Info",
+            temp: data.main.temp,
+            feels_like: data.main.feels_like,
+            weatherDesc: data.weather[0].description,
+            humidity: data.main.humidity,
+            windSpeed: data.wind.speed
+          };
+  
+          // Create info window
+          const infowindow = createCustomInfoWindow(weatherData, 'weather');
+          
+          // Add click listener
+          marker.addListener("click", () => {
+            infowindow.open(map, marker);
+          });
+  
+          weatherMarkers.push(marker);
+        })
+        .catch(error => console.error("Error fetching weather data", error));
+    }
+  }
+// Add a global array for tourist attraction markers.
 
-    // Set up the Places API search request for gas stations.
+
+
+  
+  
+function showGasStations() {
+  if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
+    alert("Please calculate a route first.");
+    return;
+  }
+
+  const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
+  const routePolyline = new google.maps.Polyline({ path: routePath });
+
+  // Define the number of waypoints to split the route
+  const numWaypoints = 10; // Adjust based on route length
+  const stepSize = Math.floor(routePath.length / numWaypoints);
+  
+  let waypoints = [];
+  for (let i = 0; i < numWaypoints; i++) {
+    waypoints.push(routePath[i * stepSize]);
+  }
+
+  const placesService = new google.maps.places.PlacesService(map);
+  
+  // Clear existing fuel markers
+  fuelMarkers.forEach(marker => marker.setMap(null));
+  fuelMarkers = [];
+
+  const tolerance = 0.002; // ~200 meters
+  let searchCount = 0;
+
+  waypoints.forEach((waypoint, index) => {
     const request = {
-      bounds: bounds,
+      location: waypoint,
+      radius: 5000, // Search within 5 km of each waypoint
       type: "gas_station",
     };
 
-    const placesService = new google.maps.places.PlacesService(map);
-
-    // Remove any existing fuel markers.
-    fuelMarkers.forEach(marker => marker.setMap(null));
-    fuelMarkers = [];
-
-    // Execute the nearby search.
     placesService.nearbySearch(request, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
+      searchCount++;
+
+      if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
         results.forEach(place => {
-          const marker = new google.maps.Marker({
-            position: place.geometry.location,
-            map: map,
-            icon: {
-              url: "https://maps.google.com/mapfiles/kml/shapes/gas_stations.png",
-              scaledSize: new google.maps.Size(30, 30),
-            },
-            title: place.name,
-          });
-          fuelMarkers.push(marker);
+          if (google.maps.geometry.poly.isLocationOnEdge(place.geometry.location, routePolyline, tolerance)) {
+            const marker = new google.maps.Marker({
+              position: place.geometry.location,
+              map: map,
+              icon: {
+                url: "https://maps.google.com/mapfiles/kml/shapes/gas_stations.png",
+                scaledSize: new google.maps.Size(30, 30),
+              },
+              title: place.name,
+            });
+            fuelMarkers.push(marker);
 
-          // Create an info window that shows the station's details.
-          const infowindow = createCustomInfoWindow(place);
-
-          marker.addListener("click", () => {
-            infowindow.open(map, marker);
-          });
+            const infowindow = createCustomInfoWindow(place, 'gas');
+            marker.addListener("click", () => {
+              infowindow.open(map, marker);
+            });
+          }
         });
       }
-    });
-  }
 
-
-  function showRestaurantsAlongRoute() {
-    if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
-      alert("Please calculate a route first.");
-      return;
-    }
-    const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
-    const bounds = new google.maps.LatLngBounds();
-    routePath.forEach(point => bounds.extend(point));
-  
-    const request = {
-      bounds: bounds,
-      type: "restaurant",
-    };
-  
-    const placesService = new google.maps.places.PlacesService(map);
-  
-    restaurantMarkers.forEach(marker => marker.setMap(null));
-    restaurantMarkers = [];
-  
-    placesService.nearbySearch(request, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        results.forEach(place => {
-          const marker = new google.maps.Marker({
-            position: place.geometry.location,
-            map: map,
-            icon: {
-              url: "https://maps.google.com/mapfiles/kml/shapes/dining.png",
-              scaledSize: new google.maps.Size(30, 30),
-            },
-            title: place.name,
-          });
-          restaurantMarkers.push(marker);
-  
-          const infowindow = createCustomInfoWindow(place, "restaurant");
-  
-          marker.addListener("click", () => {
-            infowindow.open(map, marker);
-          });
-        });
+      // Log when all searches are done
+      if (searchCount === waypoints.length) {
+        console.log(`Gas stations search complete. Found ${fuelMarkers.length} stations.`);
       }
     });
-  }
-  
-
-  function showHotelsAlongRoute() {
-    if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
-      alert("Please calculate a route first.");
-      return;
-    }
-    const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
-    const bounds = new google.maps.LatLngBounds();
-    routePath.forEach(point => bounds.extend(point));
-  
-    const request = {
-      bounds: bounds,
-      type: "lodging",
-    };
-  
-    const placesService = new google.maps.places.PlacesService(map);
-  
-    hotelMarkers.forEach(marker => marker.setMap(null));
-    hotelMarkers = [];
-  
-    placesService.nearbySearch(request, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        results.forEach(place => {
-          const marker = new google.maps.Marker({
-            position: place.geometry.location,
-            map: map,
-            icon: {
-              url: "https://maps.google.com/mapfiles/kml/shapes/lodging.png",
-              scaledSize: new google.maps.Size(30, 30),
-            },
-            title: place.name,
-          });
-          hotelMarkers.push(marker);
-  
-          const infowindow = createCustomInfoWindow(place, "hotel");
-  
-          marker.addListener("click", () => {
-            infowindow.open(map, marker);
-          });
-        });
-      }
-    });
-  }
-  
-// Helper function to create a custom info window
-function createCustomInfoWindow(place, type) {
-  let rating = place.rating ? `⭐ ${place.rating} / 5` : "No ratings available";
-  let vegStatus = "Unknown"; 
-
-  if (type === "restaurant") {
-    if (place.name.toLowerCase().includes("veg")) {
-      vegStatus = "Vegetarian";
-    } else if (place.name.toLowerCase().includes("non-veg") || place.name.toLowerCase().includes("chicken") || place.name.toLowerCase().includes("meat")) {
-      vegStatus = "Non-Vegetarian";
-    } else {
-      vegStatus = "Mixed";
-    }
-  }
-
-  const content = `
-    <div class="custom-infowindow">
-      <h3 class="infowindow-title">${place.name}</h3>
-      <p class="infowindow-address">${place.vicinity || 'Address not available'}</p>
-      ${type === "restaurant" ? `<p class="infowindow-type"><strong>Type:</strong> ${vegStatus}</p>` : ""}
-      <p class="infowindow-rating"><strong>Rating:</strong> ${rating}</p>
-    </div>
-  `;
-  return new google.maps.InfoWindow({
-    content: content
   });
 }
-document.addEventListener("DOMContentLoaded", () => {
-  initMap();
-  document.getElementById("form").addEventListener("submit", calculateRoute);
 
+
+function showRestaurantsAlongRoute() {
+  if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
+    alert("Please calculate a route first.");
+    return;
+  }
+
+  const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
+  const routePolyline = new google.maps.Polyline({ path: routePath });
+
+  // Same waypoint logic as gas stations
+  const numWaypoints = 10;
+  const stepSize = Math.floor(routePath.length / numWaypoints);
+  let waypoints = [];
+  for (let i = 0; i < numWaypoints; i++) {
+    waypoints.push(routePath[i * stepSize]);
+  }
+
+  const placesService = new google.maps.places.PlacesService(map);
+  clearRestaurantMarkers();
+
+  const tolerance = 0.002;
+  let searchCount = 0;
+
+  waypoints.forEach((waypoint, index) => {
+    // Modified request for restaurants
+    const request = {
+      location: waypoint,
+      radius: 5000,
+      type: "restaurant", // Changed type
+      keyword: "food" // Additional keyword
+    };
+
+    placesService.nearbySearch(request, (results, status) => {
+      searchCount++;
+
+      
+      if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+        results.forEach(place => {
+          if (google.maps.geometry.poly.isLocationOnEdge(place.geometry.location, routePolyline, tolerance)) {
+                // Apply filters
+                if (activeFilters.restaurant.vegOnly && 
+                    !place.name.toLowerCase().includes('veg')) return;
+                    
+                if (place.rating < activeFilters.restaurant.minRating) return;
+          
+            const marker = new google.maps.Marker({
+              position: place.geometry.location,
+              map: map,
+              icon: {
+                url: "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
+                scaledSize: new google.maps.Size(30, 30),
+              },
+              title: place.name,
+            });
+            restaurantMarkers.push(marker);
+
+             const infowindow = createCustomInfoWindow(place, 'restaurant');
+            marker.addListener("click", () => {
+              infowindow.open(map, marker);
+            });
+          }
+        });
+      }
+
+      if (searchCount === waypoints.length) {
+        console.log(`Restaurant search complete. Found ${restaurantMarkers.length} places.`);
+      }
+    });
+  });
+}
+
+  
+
+
+
+function clearHotelMarkers() {
+  hotelMarkers.forEach(marker => marker.setMap(null));
+  hotelMarkers = [];
+}
+
+function showHotelsAlongRoute() {
+  if (!directionsResult || !directionsResult.routes || directionsResult.routes.length === 0) {
+    alert("Please calculate a route first.");
+    return;
+  }
+
+  const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
+  const routePolyline = new google.maps.Polyline({ path: routePath });
+
+  // Same waypoint logic as gas stations
+  const numWaypoints = 10;
+  const stepSize = Math.floor(routePath.length / numWaypoints);
+  let waypoints = [];
+  for (let i = 0; i < numWaypoints; i++) {
+    waypoints.push(routePath[i * stepSize]);
+  }
+
+  const placesService = new google.maps.places.PlacesService(map);
+  clearHotelMarkers();
+
+  const tolerance = 0.002; // ~200 meters
+  let searchCount = 0;
+
+  waypoints.forEach((waypoint, index) => {
+    const request = {
+      location: waypoint,
+      radius: 5000, // 5km search radius
+      type: "lodging", // Changed to hotel type
+      fields: ["name", "geometry", "rating", "vicinity"]
+    };
+
+    placesService.nearbySearch(request, (results, status) => {
+      searchCount++;
+
+      if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+        results.forEach(place => {
+          if (place.rating < activeFilters.hotel.minRating) return;
+          if (place.price_level > activeFilters.hotel.maxPrice) return;
+          if (google.maps.geometry.poly.isLocationOnEdge(place.geometry.location, routePolyline, tolerance)) {
+            const marker = new google.maps.Marker({
+              position: place.geometry.location,
+              map: map,
+              icon: {
+                url: "https://maps.google.com/mapfiles/kml/shapes/lodging.png",
+                scaledSize: new google.maps.Size(30, 30),
+              },
+              title: place.name,
+            });
+            hotelMarkers.push(marker);
+
+            const infowindow = createCustomInfoWindow(place, 'hotel');
+            marker.addListener("click", () => {
+              infowindow.open(map, marker);
+            });
+          }
+        });
+      }
+
+      if (searchCount === waypoints.length) {
+        console.log(`Hotel search complete. Found ${hotelMarkers.length} hotels.`);
+      }
+    });
+  });
+}
+// Helper function to create a custom info window
+function createCustomInfoWindow(data, type) {
+  // Common template structure
+  let content = `
+    <div class="custom-infowindow">
+      <div class="header ${type}">
+        <h3>${data.name || 'Location Info'}</h3>
+        ${type === 'weather' ? '<div class="weather-icon">⛅</div>' : ''}
+      </div>
+      <div class="content">
+  `;
+
+  // Type-specific content
+  switch(type) {
+    case 'restaurant':
+      content += `
+        <p class="address">📍 ${data.vicinity || 'Address not available'}</p>
+        <div class="rating">${data.rating ? '⭐ '.repeat(Math.round(data.rating)) : 'No ratings'}</div>
+        <p class="type"><strong>Type:</strong> ${getVegStatus(data.name)}</p>
+      `;
+      break;
+
+    case 'hotel':
+      content += `
+        <p class="address">📍 ${data.vicinity || 'Address not available'}</p>
+        <div class="rating">${data.rating ? '⭐ '.repeat(Math.round(data.rating)) : 'No ratings'}</div>
+        <p class="price-level">${getPriceLevel(data.price_level)}</p>
+      `;
+      break;
+
+    case 'gas':
+      content += `
+        <p class="address">📍 ${data.vicinity || 'Address not available'}</p>
+        <div class="rating">${data.rating ? '⭐ '.repeat(Math.round(data.rating)) : 'No ratings'}</div>
+        <p class="status">⛽ 24/7: ${data.opening_hours?.open_now ? 'Yes' : 'Unknown'}</p>
+      `;
+      break;
+
+    case 'weather':
+      content += `
+        <p class="temp">🌡️ ${data.temp}°C (Feels like ${data.feels_like}°C)</p>
+        <p class="condition">${data.weatherDesc}</p>
+        <p class="humidity">💧 Humidity: ${data.humidity}%</p>
+        <p class="wind">🌬️ Wind: ${data.windSpeed} m/s</p>
+      `;
+      break;
+  }
+
+  content += `</div></div>`; // Close content and main div
+
+  const infowindow = new google.maps.InfoWindow({
+    content: content
+  });
+
+  return infowindow;
+}
+
+// Helper functions
+function getVegStatus(name) {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('veg') || lowerName.includes('vegetarian')) return '🥕 Vegetarian';
+  if (lowerName.includes('non-veg') || lowerName.includes('meat')) return '🍖 Non-Vegetarian';
+  return '🍴 Mixed Menu';
+}
+
+function getPriceLevel(level) {
+  if (!level) return '';
+  return '💵'.repeat(level) + ' '.repeat(4 - level);
+}
+
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("form").addEventListener("submit", calculateRoute);
+  loadGoogleMapsApi();
+       
   // Traffic toggle event listener.
   document.getElementById("traffic-toggle").addEventListener("change", function() {
     if (this.checked) {
@@ -733,6 +939,24 @@ document.addEventListener("DOMContentLoaded", () => {
     alert("Geolocation is not supported by your browser.");
   }
 
+  document.getElementById("w-icon").addEventListener("click", () => {
+    // Check for a route first.
+    if (!directionsResult) {
+      alert("Please calculate a route first.");
+      document.getElementById("w-icon").classList.remove("active");
+      return;
+    }
+    
+    if (weatherMarkers.length > 0) {
+      // Remove weather markers.
+      weatherMarkers.forEach(marker => marker.setMap(null));
+      weatherMarkers = [];
+    } else {
+      showWeatherAlongRoute();
+    }
+  });
+  
+  
   // Fuel, restaurant, hotel button listeners.
   document.getElementById("fuel-icon").addEventListener("click", () => {
     if (fuelMarkers.length > 0) {
@@ -744,25 +968,78 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.getElementById("restaurant-icon").addEventListener("click", () => {
     if (restaurantMarkers.length > 0) {
-      restaurantMarkers.forEach(marker => marker.setMap(null));
-      restaurantMarkers = [];
+      clearRestaurantMarkers();
     } else {
       showRestaurantsAlongRoute();
     }
   });
   document.getElementById("hotel-icon").addEventListener("click", () => {
     if (hotelMarkers.length > 0) {
-      hotelMarkers.forEach(marker => marker.setMap(null));
-      hotelMarkers = [];
+      clearHotelMarkers();
     } else {
       showHotelsAlongRoute();
     }
   });
-
+  document.getElementById("tourist-icon").addEventListener("click", () => {
+    // Toggle active state.
+    document.getElementById("tourist-icon").classList.toggle("active");
+    if (touristMarkers.length > 0) {
+      // If markers are already shown, remove them.
+      touristMarkers.forEach(marker => marker.setMap(null));
+      touristMarkers = [];
+    } else {
+      showTouristAttractionsAlongRoute();
+    }
+  });
+  
+  document.getElementById("tourist-icon").addEventListener("click", () => {
+    document.getElementById("filter-modal").style.display = "block";
+  });
+  
+  document.getElementById("cancel-filter").addEventListener("click", () => {
+    document.getElementById("filter-modal").style.display = "none";
+  });
+  
+  document.getElementById("filter-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    
+    // Update filters
+    activeFilters = {
+      restaurant: {
+        vegOnly: document.getElementById("veg-only").checked,
+        minRating: parseInt(document.getElementById("restaurant-rating").value)
+      },
+      hotel: {
+        maxPrice: parseInt(document.getElementById("hotel-price").value),
+        minRating: parseInt(document.getElementById("hotel-rating").value)
+      },
+      weather: {
+        avoidRain: document.getElementById("avoid-rain").checked,
+        avoidExtremes: document.getElementById("avoid-extremes").checked
+      }
+    };
+  
+    // Refresh all markers
+    if (restaurantMarkers.length > 0) {
+      clearRestaurantMarkers();
+      showRestaurantsAlongRoute();
+    }
+    if (hotelMarkers.length > 0) {
+      clearHotelMarkers();
+      showHotelsAlongRoute();
+    }
+    if (weatherMarkers.length > 0) {
+      weatherMarkers.forEach(m => m.setMap(null));
+      weatherMarkers = [];
+      showWeatherAlongRoute();
+    }
+  
+    document.getElementById("filter-modal").style.display = "none";
+  });
   // ---------------- Sidebar Active State Logic ----------------
 
   // IDs for buttons that require a computed route.
-  const routeRequiredIds = ['fuel-icon', 'restaurant-icon', 'hotel-icon', 'tourist-icon'];
+  const routeRequiredIds = ['w-icon','fuel-icon', 'restaurant-icon', 'hotel-icon', 'tourist-icon'];
 
   // Helper for route button highlighting.
   function toggleRouteButtonHighlight() {
