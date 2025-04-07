@@ -6,23 +6,6 @@ const password_input = document.getElementById('password-input');
 const repeat_password_input = document.getElementById('repeat-password-input');
 const error_message = document.getElementById('error-message');
 
-form.addEventListener('submit', (e) => {
-  let errors = [];
-
-  if (fname_input) {
-    // Signup form validation
-    errors = getSignupFormErrors(fname_input.value, username_input.value, email_input.value, password_input.value, repeat_password_input.value);
-  } else {
-    // Login form validation
-    errors = getLoginFormErrors(email_input.value, password_input.value);
-  }
-
-  if (errors.length > 0) {
-    e.preventDefault();
-    error_message.innerText = errors.join('. ');
-  }
-});
-
 function getSignupFormErrors(fname, username, email, password, repeatPassword) {
   let errors = [];
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -69,7 +52,6 @@ function getLoginFormErrors(email, password){
 
   return errors;
 }
-// Remove error styling on input change
 const allInputs = [fname_input, username_input, email_input, password_input, repeat_password_input].filter(input => input != null);
 
 allInputs.forEach(input => {
@@ -83,20 +65,20 @@ allInputs.forEach(input => {
 
 form.addEventListener('submit', (e) => {
   let errors = [];
-
   if (fname_input) {
-    // Signup form validation
-    errors = getSignupFormErrors(fname_input.value, username_input.value, email_input.value, password_input.value, repeat_password_input.value);
+    errors = getSignupFormErrors(
+      fname_input.value,
+      username_input.value,
+      email_input.value,
+      password_input.value,
+      repeat_password_input.value
+    );
   } else {
-    // Login form validation
     errors = getLoginFormErrors(email_input.value, password_input.value);
   }
 
   if (errors.length > 0) {
     e.preventDefault();
     error_message.innerText = errors.join('. ');
-  } else {
-    // Redirect to the map page if no errors
-    window.location.href = '../map/map.html';
   }
 });

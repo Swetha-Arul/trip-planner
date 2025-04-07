@@ -1,14 +1,3 @@
-<?php
-session_start();
-require_once "../db.php"; // Adjust path if needed
-
-if (!isset($_SESSION['user_name'])) {
-    header("Location: ../signuplogin/login.php");
-    exit();
-}
-
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +5,6 @@ if (!isset($_SESSION['user_name'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Enhanced Route & Navigation</title>
   <link rel="stylesheet" href="./map.css" />
-  <!-- Include your config file first -->
    
   <script src="../config.js"></script>
   <script src="map.js"></script>
@@ -33,12 +21,10 @@ if (!isset($_SESSION['user_name'])) {
     <button id="hotel-icon" title="Show Hotels">🏨</button>
     <button id="restaurant-icon" title="Show Restaurants">🍽️</button>
     <button id="fuel-icon" title="Show Fuel Stations">⛽</button>
-    <button id="tourist-icon" title="Show Tourist Attractions">🏞️</button>
+    <button id="tourist-icon" title="Show filters">🏞️</button>
   </div>
      
-  <!-- Extended Sidebar -->
   <div id="route-sidebar">
-    <!-- Route Planning Form -->
     <div id="planning-container">
       <form id="form">
         <label for="start">Start:</label>
@@ -76,15 +62,12 @@ if (!isset($_SESSION['user_name'])) {
       <p id="nav-details"></p>
     </div>
     
-    <!-- Directions List Container -->
     <div id="directions-list"></div>
   </div>
 
   </div>
      
-  <!-- Map Container -->
   <div id="map"></div>
-  <!-- GPS Info Overlay -->
   <div id="gps-info">
     <h2>GPS Info</h2>
     <p id="lat">Lat: --</p>
@@ -93,7 +76,6 @@ if (!isset($_SESSION['user_name'])) {
     <p id="accuracy">Accuracy: --</p>
   </div>
 
-  <!-- Add to your HTML -->
 <div id="filter-modal" class="modal-blur">
   <div class="filter-content">
     <h2>🛑 Route Preferences</h2>

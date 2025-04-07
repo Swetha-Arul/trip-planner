@@ -3,7 +3,7 @@ function loadGoogleMapsApi() {
   script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places,geometry`;
   script.defer = true;
   script.async = true;
-  script.onload = initMap; // Call initMap after the script loads
+  script.onload = initMap;
   document.head.appendChild(script);
 }
 
@@ -55,7 +55,7 @@ function clearRestaurantMarkers() {
         return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l-5 9h10z"/></svg>`;
     }
   }
-  // Build an array of all steps from the selected route.
+
   function getAllSteps() {
     const steps = [];
     const route = directionsResult.routes[selectedRouteIndex];
@@ -67,7 +67,6 @@ function clearRestaurantMarkers() {
     return steps;
   }
   
-  // Build the directions list with icons and distance (instead of duration).
   function buildDirectionsList(route) {
     const container = document.getElementById("directions-list");
     container.innerHTML = "";
@@ -78,7 +77,6 @@ function clearRestaurantMarkers() {
         stepDiv.className = "direction-step";
         stepDiv.id = "step-" + stepIndex;
         
-        // Create icon container.
         const iconDiv = document.createElement("div");
         iconDiv.className = "icon-container";
         let iconHTML = "";
@@ -88,7 +86,6 @@ function clearRestaurantMarkers() {
           iconHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l-5 9h10z"/></svg>`;
         }
         iconDiv.innerHTML = iconHTML;
-        // Instead of duration, display step distance.
         if (step.distance && step.distance.text) {
           const distanceDiv = document.createElement("div");
           distanceDiv.className = "duration-text";
@@ -96,7 +93,6 @@ function clearRestaurantMarkers() {
           iconDiv.appendChild(distanceDiv);
         }
         
-        // Create instruction text container.
         const instructionDiv = document.createElement("div");
         instructionDiv.className = "instruction-text";
         instructionDiv.textContent = step.instructions.replace(/<[^>]+>/g, '');
@@ -109,7 +105,6 @@ function clearRestaurantMarkers() {
     });
   }
        
-  /* ------------------ MAP & ROUTE PLANNING FUNCTIONS ------------------ */
   function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
       center: { lat: 37.7749, lng: -122.4194 },
@@ -124,7 +119,6 @@ function clearRestaurantMarkers() {
     new google.maps.places.Autocomplete(document.getElementById("start"));
     new google.maps.places.Autocomplete(document.getElementById("end"));
   
-    // Check if dark mode was active and apply the dark map style.
     if (localStorage.getItem('darkmode') === 'active') {
       map.setOptions({ styles: darkMapStyle });
       document.body.classList.add('darkmode');
@@ -184,14 +178,12 @@ function clearRestaurantMarkers() {
     else if (minutes > 0) return `${minutes}m ${secs}s`;
     else return `${secs}s`;
   }
-       
-  // Calculate route and reset controls.
+
   function calculateRoute(event) {
   event.preventDefault();
   stopNavigation();
   document.getElementById("directions-list").style.display = "none";
-  
-  // Clear any previously added gas station markers.
+
   weatherMarkers.forEach(marker => marker.setMap(null));
   weatherMarkers = [];
   fuelMarkers.forEach(marker => marker.setMap(null));
@@ -212,7 +204,6 @@ function clearRestaurantMarkers() {
       .filter(input => input.value.trim() !== "")
       .map(input => ({ location: input.value, stopover: true }));
   
-  // Default travel mode: DRIVING.
   const travelMode = google.maps.TravelMode.DRIVING;
   
   const request = {
@@ -238,8 +229,6 @@ function clearRestaurantMarkers() {
   });
   }
 
-       
-  // Display alternate route summaries.
   function displayAlternateRoutes(routes) {
     const altContainer = document.getElementById("alternatives-container");
     altContainer.innerHTML = "";
@@ -271,14 +260,14 @@ function clearRestaurantMarkers() {
       });
     }
   }
-  // Select a route, update map, travel summary, and build directions list.
+
   function selectRoute(index) {
     selectedRouteIndex = index;
     const route = directionsResult.routes[index];
     clearRoutePolylines();
     clearRouteMarkers();
     directionsResult.routes.forEach((route, i) => {
-  // Use full opacity for the selected route and lower for the others.
+
       const polylineOptions = {
         path: route.overview_path,
         strokeColor: "#007bff",
@@ -322,7 +311,6 @@ function clearRestaurantMarkers() {
     }
   }
        
-  /* --------------------- LIVE GPS TRACKING --------------------- */
   function updateCurrentPosition(position) {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
@@ -335,7 +323,6 @@ function clearRestaurantMarkers() {
           
     const currentPos = new google.maps.LatLng(lat, lng);
     
-    // Create or update a custom marker using a car icon.
     if (!currentMarker) {
       currentMarker = new google.maps.Marker({
         position: currentPos,
@@ -369,7 +356,7 @@ function clearRestaurantMarkers() {
     alert("Error obtaining location. Please ensure location services are enabled.");
   }
        
-  /* --------------------- NAVIGATION MODE FUNCTIONS --------------------- */
+
   function getDistanceBetweenPoints(lat1, lng1, lat2, lng2) {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -399,7 +386,6 @@ function clearRestaurantMarkers() {
     }
   }
        
-  // Update navigation: highlight active step and use voice guidance.
   function updateNavigation() {
     if (!directionsResult || !currentMarker) return;
     const currentPos = currentMarker.getPosition();
@@ -441,22 +427,18 @@ function clearRestaurantMarkers() {
       document.getElementById("nav-details").textContent =
         "Turn in: " + (distanceToTurn / 1000).toFixed(2) + " km | Remaining: " + (remainingDistance / 1000).toFixed(2) + " km";
       
-      // Highlight active step.
       const allSteps = document.querySelectorAll(".direction-step");
       allSteps.forEach(el => el.classList.remove("active"));
       const activeStepEl = document.getElementById("step-" + nextStepIndex);
       if (activeStepEl) {
         activeStepEl.classList.add("active");
-        // Scroll only the directions container.
         const directionsContainer = document.getElementById("directions-list");
         if (directionsContainer) {
-          // Compute the relative offset to center the active step in the container.
           const containerRect = directionsContainer.getBoundingClientRect();
           const elementRect = activeStepEl.getBoundingClientRect();
           const offset = elementRect.top - containerRect.top - (directionsContainer.clientHeight / 2) + (activeStepEl.clientHeight / 2);
           directionsContainer.scrollBy({ top: offset, behavior: "smooth" });
         }
-        // Optionally update the displayed distance in the active step using computed distance:
         let computedDistance = "";
         if (distanceToTurn < 1000) {
           computedDistance = Math.round(distanceToTurn) + " m";
@@ -490,7 +472,6 @@ function clearRestaurantMarkers() {
     }
   }
        
-  // Start navigation: show navigation instructions and begin updates.
   function startNavigation() {
     if (!currentMarker) {
       alert("Live location not detected. Please ensure location services are enabled.");
@@ -536,7 +517,6 @@ function clearRestaurantMarkers() {
       fetch(weatherUrl)
         .then(response => response.json())
         .then(data => {
-          // Create weather marker
           const marker = new google.maps.Marker({
             position: point,
             map: map,
@@ -547,7 +527,6 @@ function clearRestaurantMarkers() {
             title: "Weather Info"
           });
   
-          // Prepare weather data
           const weatherData = {
             name: "Weather Info",
             temp: data.main.temp,
@@ -557,10 +536,8 @@ function clearRestaurantMarkers() {
             windSpeed: data.wind.speed
           };
   
-          // Create info window
           const infowindow = createCustomInfoWindow(weatherData, 'weather');
           
-          // Add click listener
           marker.addListener("click", () => {
             infowindow.open(map, marker);
           });
@@ -570,7 +547,7 @@ function clearRestaurantMarkers() {
         .catch(error => console.error("Error fetching weather data", error));
     }
   }
-// Add a global array for tourist attraction markers.
+
 
 
 
@@ -585,8 +562,7 @@ function showGasStations() {
   const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
   const routePolyline = new google.maps.Polyline({ path: routePath });
 
-  // Define the number of waypoints to split the route
-  const numWaypoints = 10; // Adjust based on route length
+  const numWaypoints = 10;
   const stepSize = Math.floor(routePath.length / numWaypoints);
   
   let waypoints = [];
@@ -596,17 +572,16 @@ function showGasStations() {
 
   const placesService = new google.maps.places.PlacesService(map);
   
-  // Clear existing fuel markers
   fuelMarkers.forEach(marker => marker.setMap(null));
   fuelMarkers = [];
 
-  const tolerance = 0.002; // ~200 meters
+  const tolerance = 0.002;
   let searchCount = 0;
 
   waypoints.forEach((waypoint, index) => {
     const request = {
       location: waypoint,
-      radius: 5000, // Search within 5 km of each waypoint
+      radius: 5000, 
       type: "gas_station",
     };
 
@@ -635,7 +610,6 @@ function showGasStations() {
         });
       }
 
-      // Log when all searches are done
       if (searchCount === waypoints.length) {
         console.log(`Gas stations search complete. Found ${fuelMarkers.length} stations.`);
       }
@@ -653,7 +627,7 @@ function showRestaurantsAlongRoute() {
   const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
   const routePolyline = new google.maps.Polyline({ path: routePath });
 
-  // Same waypoint logic as gas stations
+
   const numWaypoints = 10;
   const stepSize = Math.floor(routePath.length / numWaypoints);
   let waypoints = [];
@@ -668,12 +642,11 @@ function showRestaurantsAlongRoute() {
   let searchCount = 0;
 
   waypoints.forEach((waypoint, index) => {
-    // Modified request for restaurants
     const request = {
       location: waypoint,
       radius: 5000,
-      type: "restaurant", // Changed type
-      keyword: "food" // Additional keyword
+      type: "restaurant",
+      keyword: "food" 
     };
 
     placesService.nearbySearch(request, (results, status) => {
@@ -683,7 +656,6 @@ function showRestaurantsAlongRoute() {
       if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
         results.forEach(place => {
           if (google.maps.geometry.poly.isLocationOnEdge(place.geometry.location, routePolyline, tolerance)) {
-                // Apply filters
                 if (activeFilters.restaurant.vegOnly && 
                     !place.name.toLowerCase().includes('veg')) return;
                     
@@ -733,7 +705,6 @@ function showHotelsAlongRoute() {
   const routePath = directionsResult.routes[selectedRouteIndex].overview_path;
   const routePolyline = new google.maps.Polyline({ path: routePath });
 
-  // Same waypoint logic as gas stations
   const numWaypoints = 10;
   const stepSize = Math.floor(routePath.length / numWaypoints);
   let waypoints = [];
@@ -744,14 +715,14 @@ function showHotelsAlongRoute() {
   const placesService = new google.maps.places.PlacesService(map);
   clearHotelMarkers();
 
-  const tolerance = 0.002; // ~200 meters
+  const tolerance = 0.002;
   let searchCount = 0;
 
   waypoints.forEach((waypoint, index) => {
     const request = {
       location: waypoint,
-      radius: 5000, // 5km search radius
-      type: "lodging", // Changed to hotel type
+      radius: 5000,
+      type: "lodging",
       fields: ["name", "geometry", "rating", "vicinity"]
     };
 
@@ -788,9 +759,9 @@ function showHotelsAlongRoute() {
     });
   });
 }
-// Helper function to create a custom info window
+
 function createCustomInfoWindow(data, type) {
-  // Common template structure
+
   let content = `
     <div class="custom-infowindow">
       <div class="header ${type}">
@@ -800,7 +771,7 @@ function createCustomInfoWindow(data, type) {
       <div class="content">
   `;
 
-  // Type-specific content
+
   switch(type) {
     case 'restaurant':
       content += `
@@ -836,7 +807,7 @@ function createCustomInfoWindow(data, type) {
       break;
   }
 
-  content += `</div></div>`; // Close content and main div
+  content += `</div></div>`;
 
   const infowindow = new google.maps.InfoWindow({
     content: content
@@ -845,7 +816,6 @@ function createCustomInfoWindow(data, type) {
   return infowindow;
 }
 
-// Helper functions
 function getVegStatus(name) {
   const lowerName = name.toLowerCase();
   if (lowerName.includes('veg') || lowerName.includes('vegetarian')) return '🥕 Vegetarian';
@@ -864,8 +834,7 @@ function getPriceLevel(level) {
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("form").addEventListener("submit", calculateRoute);
   loadGoogleMapsApi();
-       
-  // Traffic toggle event listener.
+  
   document.getElementById("traffic-toggle").addEventListener("change", function() {
     if (this.checked) {
       trafficLayer.setMap(map);
@@ -873,8 +842,17 @@ document.addEventListener("DOMContentLoaded", () => {
       trafficLayer.setMap(null);
     }
   });
+  document.getElementById("form").addEventListener("submit", function(event) {
+    event.preventDefault();
+    
+    document.querySelectorAll("#sidebar button").forEach(button => {
+        button.classList.remove("active");
+    });
 
-  // Dynamic stop input listener.
+    document.getElementById("route-toggle").classList.add("active");
+
+    document.getElementById("route-sidebar").classList.add("show");
+});
   document.getElementById("addstop").addEventListener("click", () => {
     const stopsContainer = document.getElementById("stops-container");
     const stopItem = document.createElement("div");
@@ -901,7 +879,6 @@ document.addEventListener("DOMContentLoaded", () => {
     stopsContainer.appendChild(stopItem);
   });
 
-  // Route sidebar toggle listener.
   document.getElementById("route-toggle").addEventListener("click", () => {
     const routeSidebar = document.getElementById("route-sidebar");
     routeSidebar.classList.toggle("show");
@@ -919,7 +896,6 @@ document.addEventListener("DOMContentLoaded", () => {
     map.setCenter(center);
   });
 
-  // Navigation toggle.
   document.getElementById("nav-toggle").addEventListener("click", () => {
     if (!isNavigating) {
       startNavigation();
@@ -928,7 +904,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Geolocation tracking.
   if (navigator.geolocation) {
     navigator.geolocation.watchPosition(updateCurrentPosition, handleGeolocationError, {
       enableHighAccuracy: true,
@@ -940,7 +915,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("w-icon").addEventListener("click", () => {
-    // Check for a route first.
     if (!directionsResult) {
       alert("Please calculate a route first.");
       document.getElementById("w-icon").classList.remove("active");
@@ -948,7 +922,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     if (weatherMarkers.length > 0) {
-      // Remove weather markers.
       weatherMarkers.forEach(marker => marker.setMap(null));
       weatherMarkers = [];
     } else {
@@ -957,7 +930,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   
   
-  // Fuel, restaurant, hotel button listeners.
+
   document.getElementById("fuel-icon").addEventListener("click", () => {
     if (fuelMarkers.length > 0) {
       fuelMarkers.forEach(marker => marker.setMap(null));
@@ -980,7 +953,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showHotelsAlongRoute();
     }
   });
-  document.getElementById("tourist-icon").addEventListener("click", () => {
+  /*document.getElementById("tourist-icon").addEventListener("click", () => {
     // Toggle active state.
     document.getElementById("tourist-icon").classList.toggle("active");
     if (touristMarkers.length > 0) {
@@ -990,7 +963,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       showTouristAttractionsAlongRoute();
     }
-  });
+  });*/
   
   document.getElementById("tourist-icon").addEventListener("click", () => {
     document.getElementById("filter-modal").style.display = "block";
@@ -1003,7 +976,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("filter-form").addEventListener("submit", (e) => {
     e.preventDefault();
     
-    // Update filters
     activeFilters = {
       restaurant: {
         vegOnly: document.getElementById("veg-only").checked,
@@ -1019,7 +991,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
   
-    // Refresh all markers
     if (restaurantMarkers.length > 0) {
       clearRestaurantMarkers();
       showRestaurantsAlongRoute();
@@ -1036,29 +1007,21 @@ document.addEventListener("DOMContentLoaded", () => {
   
     document.getElementById("filter-modal").style.display = "none";
   });
-  // ---------------- Sidebar Active State Logic ----------------
 
-  // IDs for buttons that require a computed route.
   const routeRequiredIds = ['w-icon','fuel-icon', 'restaurant-icon', 'hotel-icon', 'tourist-icon'];
 
-  // Helper for route button highlighting.
   function toggleRouteButtonHighlight() {
     const routeBtn = document.getElementById("route-toggle");
     routeBtn.classList.toggle("active");
   }
 
-  // Handle sidebar buttons.
   document.querySelectorAll("#sidebar button").forEach(btn => {
-    // Handle route button separately.
     if (btn.id === "route-toggle") {
       btn.addEventListener("click", () => {
-        // Always toggle active state for route button.
         toggleRouteButtonHighlight();
       });
     } else {
-      // For other buttons.
       btn.addEventListener("click", () => {
-        // If the button requires a route and no route is computed, alert and do not highlight.
         if (routeRequiredIds.includes(btn.id) && !directionsResult) {
           alert("Please calculate a route first.");
           btn.classList.remove("active");
@@ -1067,5 +1030,18 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.classList.toggle("active");
       });
     }
+    document.getElementById("form").addEventListener("submit", function(event) {
+      event.preventDefault();
+      
+      document.querySelectorAll("#sidebar button").forEach(button => {
+          button.classList.remove("active");
+      });
+    
+      document.getElementById("route-toggle").classList.add("active");
+
+      document.getElementById("route-sidebar").classList.add("show");
+
+      calculateRoute();
+    });
   });
 });

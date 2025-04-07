@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,7 +22,7 @@
     <div class="wrapper">
       <h1>Signup</h1>
       <p id="error-message"></p>
-      <form id="form" action="../map/map.html">
+      <form id="form" method="post" action="../Backend/signup.php">
         <div>
           <label for="fname-input">
             <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/></svg>
@@ -59,6 +60,18 @@
       <p>Already have an Account? <a href="login.html">login</a> </p>
     </div>
   </div>
+  <script>
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+    
+    const errorMessage = getQueryParam('error');
+    if (errorMessage) {
+      document.getElementById('error-message').innerText = decodeURIComponent(errorMessage);
+    }
+  </script>
+  
   <script src="../darkmode/darkmode.js"></script>
 </body>
 </html>
