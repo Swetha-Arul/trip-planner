@@ -328,24 +328,94 @@
 
 .modal-blur {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(5px);
-  display: none;
-  z-index: 1000;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1400;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.modal-blur.open {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .filter-content {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 500px;
-  margin: 50px auto;
-  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  background: var(--section-color-map);
+  color: var(--text-color-map);
+  padding: 22px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 640px;
+  box-shadow: 0 12px 30px rgba(8,24,48,0.08);
+  transform: translateY(-6px) scale(0.995);
+  opacity: 1;
+  transition: transform 220ms cubic-bezier(.2,.9,.3,1);
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.modal-blur.open .filter-content {
+  transform: translateY(0) scale(1);
+}
+
+/* Close button inside modal */
+.close-filter {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-color-map);
+  padding: 6px;
+  border-radius: 6px;
+}
+.close-filter:hover { background: rgba(0,0,0,0.04); color: var(--text-color-map); }
+
+/* Improved section look */
+.filter-section {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.9);
+}
+
+/* Action buttons */
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: var(--primary-map);
+  color: white;
+  border-color: rgba(0,0,0,0.06);
+  box-shadow: 0 6px 14px rgba(3,102,95,0.06);
+}
+.btn-primary:hover { background: var(--accent-map); }
+.btn-secondary {
+  background: transparent;
+  color: var(--text-color-map);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.btn-secondary:hover { background: rgba(0,0,0,0.02); }
+
+/* Responsive tweaks */
+@media (max-width: 520px) {
+  .filter-content { padding: 16px; border-radius: 10px; max-width: 96%; }
+  .close-filter { right: 8px; top: 8px; }
 }
 
 .filter-section {
@@ -355,6 +425,30 @@
   border-radius: 8px;
 }
 
+
+/* Stack each option vertically and make selects/inputs full width within sections */
+.filter-section label {
+  display: block;
+  margin: 8px 0;
+  font-size: 14px;
+}
+.filter-section input[type="checkbox"] {
+  display: inline-block;
+  width: auto;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.filter-section select,
+.filter-section input[type="text"],
+.filter-section input[type="number"] {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 6px;
+  background: #fff;
+}
 .filter-actions {
   text-align: right;
   margin-top: 20px;
