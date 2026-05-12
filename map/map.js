@@ -191,7 +191,7 @@ function clearRestaurantMarkers() {
   stopNavigation();
   document.getElementById("directions-list").style.display = "none";
   
-  // Clear any previously added gas station markers.
+  // Clear any previously added markers.
   weatherMarkers.forEach(marker => marker.setMap(null));
   weatherMarkers = [];
   fuelMarkers.forEach(marker => marker.setMap(null));
@@ -398,6 +398,46 @@ function clearRestaurantMarkers() {
       console.warn("You appear to have deviated from the planned route.");
     }
   }
+
+// Modal show/hide handlers for filter modal
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('filter-modal');
+  const openBtn = document.getElementById('tourist-icon');
+  const closeBtn = document.getElementById('close-filter');
+  const cancelBtn = document.getElementById('cancel-filter');
+
+  if (openBtn && modal) {
+    openBtn.addEventListener('click', () => {
+      if (!directionsResult) {
+        alert('Please calculate a route first.');
+        openBtn.classList.remove('active');
+        return;
+      }
+      modal.classList.add('open');
+      // focus first input for accessibility
+      const firstInput = modal.querySelector('input, select, button');
+      if (firstInput) firstInput.focus();
+    });
+  }
+  if (closeBtn && modal) closeBtn.addEventListener('click', () => {
+    modal.classList.remove('open');
+    if (openBtn) openBtn.focus();
+  });
+  if (cancelBtn && modal) cancelBtn.addEventListener('click', () => {
+    modal.classList.remove('open');
+    if (openBtn) openBtn.focus();
+  });
+
+  // Close when clicking on backdrop
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('open');
+        if (openBtn) openBtn.focus();
+      }
+    });
+  }
+});
        
   // Update navigation: highlight active step and use voice guidance.
   function updateNavigation() {
@@ -570,7 +610,7 @@ function clearRestaurantMarkers() {
         .catch(error => console.error("Error fetching weather data", error));
     }
   }
-// Add a global array for tourist attraction markers.
+
 
 
 
@@ -864,7 +904,7 @@ function getPriceLevel(level) {
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("form").addEventListener("submit", calculateRoute);
   loadGoogleMapsApi();
-       
+  
   // Traffic toggle event listener.
   document.getElementById("traffic-toggle").addEventListener("change", function() {
     if (this.checked) {
@@ -873,7 +913,20 @@ document.addEventListener("DOMContentLoaded", () => {
       trafficLayer.setMap(null);
     }
   });
+  document.getElementById("form").addEventListener("submit", function(event) {
+    event.preventDefault(); // Prevent default form submission
+    
+    // Reset active state for all sidebar buttons
+    document.querySelectorAll("#sidebar button").forEach(button => {
+        button.classList.remove("active"); // Remove active class
+    });
 
+    // Add active state to the route-toggle button
+    document.getElementById("route-toggle").classList.add("active");
+
+    // Show the route sidebar (if hidden)
+    document.getElementById("route-sidebar").classList.add("show");
+});
   // Dynamic stop input listener.
   document.getElementById("addstop").addEventListener("click", () => {
     const stopsContainer = document.getElementById("stops-container");
@@ -980,7 +1033,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showHotelsAlongRoute();
     }
   });
-  document.getElementById("tourist-icon").addEventListener("click", () => {
+  /*document.getElementById("tourist-icon").addEventListener("click", () => {
     // Toggle active state.
     document.getElementById("tourist-icon").classList.toggle("active");
     if (touristMarkers.length > 0) {
@@ -990,14 +1043,15 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       showTouristAttractionsAlongRoute();
     }
-  });
+  });*/
   
-  document.getElementById("tourist-icon").addEventListener("click", () => {
-    document.getElementById("filter-modal").style.display = "block";
-  });
+  // tourist-icon click is handled by the centralized handler above which
+  // checks for an active route before opening the modal.
   
   document.getElementById("cancel-filter").addEventListener("click", () => {
-    document.getElementById("filter-modal").style.display = "none";
+    const modal = document.getElementById("filter-modal");
+    modal.classList.remove('open');
+    document.getElementById("tourist-icon").focus();
   });
   
   document.getElementById("filter-form").addEventListener("submit", (e) => {
@@ -1034,7 +1088,8 @@ document.addEventListener("DOMContentLoaded", () => {
       showWeatherAlongRoute();
     }
   
-    document.getElementById("filter-modal").style.display = "none";
+    document.getElementById("filter-modal").classList.remove('open');
+    document.getElementById("tourist-icon").focus();
   });
   // ---------------- Sidebar Active State Logic ----------------
 
@@ -1067,5 +1122,22 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.classList.toggle("active");
       });
     }
+    document.getElementById("form").addEventListener("submit", function(event) {
+      event.preventDefault(); // Prevent default form submission
+      
+      // Reset active state for all sidebar buttons
+      document.querySelectorAll("#sidebar button").forEach(button => {
+          button.classList.remove("active"); // Remove active class
+      });
+    
+      // Add active state to the route-toggle button
+      document.getElementById("route-toggle").classList.add("active");
+    
+      // Show the route sidebar (if hidden)
+      document.getElementById("route-sidebar").classList.add("show");
+    
+      // Call your existing calculateRoute function
+      calculateRoute();
+    });
   });
 });

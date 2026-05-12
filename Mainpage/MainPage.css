@@ -729,3 +729,20 @@ p {
     background-color: var(--section-color);
 }
 
+nav {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  nav .logo {
+        width: 50px;
+        height: 50px;
+        margin-right: auto; /* This pushes the remaining nav links to the right */
+        margin-left: 20px;  /* Optional: add left margin */
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+        border: 2px solid rgba(0,0,0,0.06);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  

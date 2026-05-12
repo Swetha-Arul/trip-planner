@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../pics/logo.png" />
   <link rel="stylesheet" href="sigup_login.css">
   <link rel="stylesheet" href="../darkmode/darkmode.css" />
   <script type="text/javascript" src="./validation.js" defer></script>
@@ -21,7 +22,7 @@
     <div class="wrapper">
       <h1>Login</h1>
       <p id="error-message"></p>
-      <form id="form" action="../map/map.html">
+      <form id="form" method="post" action="../Backend/login.php">
         <div>
           <label for="email-input">
             <span>@</span>
@@ -39,6 +40,19 @@
       <p>New here? <a href="./signup.html">Create an Account</a></p>
     </div>
   </div>
+  <script>
+  // Function to get the query parameter by name
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+    
+    // Get the error query parameter and display it if present
+    const errorMessage = getQueryParam('error');
+    if (errorMessage) {
+      document.getElementById('error-message').innerText = decodeURIComponent(errorMessage);
+    }
+  </script>
   <script src="../darkmode/darkmode.js"></script>
 </body>
 </html>

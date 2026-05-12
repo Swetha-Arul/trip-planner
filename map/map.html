@@ -1,22 +1,11 @@
-<?php
-session_start();
-require_once "../db.php"; // Adjust path if needed
-
-if (!isset($_SESSION['user_name'])) {
-    header("Location: ../signuplogin/login.php");
-    exit();
-}
-
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enhanced Route & Navigation</title>
+  <title>RoadTripPlanner</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../pics/logo.png" />
   <link rel="stylesheet" href="./map.css" />
-  <!-- Include your config file first -->
    
   <script src="../config.js"></script>
   <script src="map.js"></script>
@@ -33,7 +22,7 @@ if (!isset($_SESSION['user_name'])) {
     <button id="hotel-icon" title="Show Hotels">🏨</button>
     <button id="restaurant-icon" title="Show Restaurants">🍽️</button>
     <button id="fuel-icon" title="Show Fuel Stations">⛽</button>
-    <button id="tourist-icon" title="Show Tourist Attractions">🏞️</button>
+    <button id="tourist-icon" title="Show filters">🏞️</button>
   </div>
      
   <!-- Extended Sidebar -->
@@ -93,10 +82,10 @@ if (!isset($_SESSION['user_name'])) {
     <p id="accuracy">Accuracy: --</p>
   </div>
 
-  <!-- Add to your HTML -->
-<div id="filter-modal" class="modal-blur">
-  <div class="filter-content">
-    <h2>🛑 Route Preferences</h2>
+<div id="filter-modal" class="modal-blur" role="dialog" aria-modal="true" aria-labelledby="filter-title">
+  <div class="filter-content" role="document">
+    <button type="button" id="close-filter" class="close-filter" aria-label="Close filter dialog">✕</button>
+    <h2 id="filter-title">🛑 Route Preferences</h2>
     <form id="filter-form">
       <div class="filter-section">
         <h3>🍽️ Restaurant Filters</h3>
@@ -145,8 +134,8 @@ if (!isset($_SESSION['user_name'])) {
       </div>
 
       <div class="filter-actions">
-        <button type="button" id="cancel-filter">Cancel</button>
-        <button type="submit">Apply Filters</button>
+        <button type="button" id="cancel-filter" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
       </div>
     </form>
   </div>
