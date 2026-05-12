@@ -7,8 +7,10 @@ error_reporting(E_ALL);
 // 1. Connect to the Database
 $servername = "localhost";
 $dbUsername = "root";
+
 $dbPassword = "YourPassword"; // Replace with your actual database password
 $dbname = "YourDatabaseName"; // Replace with your actual database name
+
 
 $conn = new mysqli($servername, $dbUsername, $dbPassword, $dbname);
 if ($conn->connect_error) {

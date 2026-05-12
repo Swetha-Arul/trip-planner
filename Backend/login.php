@@ -6,6 +6,7 @@ error_reporting(E_ALL);
 // 1. Connect to the Database
 $servername = "localhost";
 $username = "root";
+
 $password = "YourPassword"; // Replace with your actual database password
 $dbname = "YourDatabaseName"; // Replace with your actual database name
 
