@@ -183,12 +183,7 @@ function clearRestaurantMarkers() {
   event.preventDefault();
   stopNavigation();
   document.getElementById("directions-list").style.display = "none";
-<<<<<<< HEAD
-  
-  // Clear any previously added markers.
-=======
 
->>>>>>> 19f741b5ec3759863e712514b46b301ec861b31d
   weatherMarkers.forEach(marker => marker.setMap(null));
   weatherMarkers = [];
   fuelMarkers.forEach(marker => marker.setMap(null));
@@ -880,10 +875,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("form").addEventListener("submit", calculateRoute);
   loadGoogleMapsApi();
   
-<<<<<<< HEAD
-  // Traffic toggle event listener.
-=======
->>>>>>> 19f741b5ec3759863e712514b46b301ec861b31d
   document.getElementById("traffic-toggle").addEventListener("change", function() {
     if (this.checked) {
       trafficLayer.setMap(map);
@@ -892,22 +883,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   document.getElementById("form").addEventListener("submit", function(event) {
-<<<<<<< HEAD
-    event.preventDefault(); // Prevent default form submission
-    
-    // Reset active state for all sidebar buttons
-    document.querySelectorAll("#sidebar button").forEach(button => {
-        button.classList.remove("active"); // Remove active class
-    });
 
-    // Add active state to the route-toggle button
-    document.getElementById("route-toggle").classList.add("active");
-
-    // Show the route sidebar (if hidden)
-    document.getElementById("route-sidebar").classList.add("show");
-});
-  // Dynamic stop input listener.
-=======
     event.preventDefault();
     
     document.querySelectorAll("#sidebar button").forEach(button => {
@@ -918,7 +894,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("route-sidebar").classList.add("show");
 });
->>>>>>> 19f741b5ec3759863e712514b46b301ec861b31d
   document.getElementById("addstop").addEventListener("click", () => {
     const stopsContainer = document.getElementById("stops-container");
     const stopItem = document.createElement("div");
@@ -1099,22 +1074,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
     document.getElementById("form").addEventListener("submit", function(event) {
-<<<<<<< HEAD
-      event.preventDefault(); // Prevent default form submission
-      
-      // Reset active state for all sidebar buttons
-      document.querySelectorAll("#sidebar button").forEach(button => {
-          button.classList.remove("active"); // Remove active class
-      });
-    
-      // Add active state to the route-toggle button
-      document.getElementById("route-toggle").classList.add("active");
-    
-      // Show the route sidebar (if hidden)
-      document.getElementById("route-sidebar").classList.add("show");
-    
-      // Call your existing calculateRoute function
-=======
+
       event.preventDefault();
       
       document.querySelectorAll("#sidebar button").forEach(button => {
@@ -1125,7 +1085,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       document.getElementById("route-sidebar").classList.add("show");
 
->>>>>>> 19f741b5ec3759863e712514b46b301ec861b31d
       calculateRoute();
     });
   });
