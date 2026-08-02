@@ -1,2 +1,8 @@
 config.js
 db.php
+.env
+vendor/
+node_modules/
+.vscode/
+.idea/
+mysql-data/

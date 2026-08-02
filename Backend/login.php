@@ -3,17 +3,22 @@ session_start();
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// 1. Connect to the Database
-$servername = "localhost";
-$username = "root";
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$password = "YourPassword"; // Replace with your actual database password
-$dbname = "YourDatabaseName"; // Replace with your actual database name
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
 
+// Database Configuration
+$servername = $_ENV['DB_HOST'];
+$username   = $_ENV['DB_USER'];
+$password   = $_ENV['DB_PASSWORD'];
+$dbname     = $_ENV['DB_NAME'];
+
+// Connect to Database
 $conn = new mysqli($servername, $username, $password, $dbname);
+
 if ($conn->connect_error) {
-  header("Location: ../signuplogin/login.html?error=" . urlencode("Database connection failed."));
-  exit();
+    die("Database connection failed: " . $conn->connect_error);
 }
 
 // 2. Get login form data

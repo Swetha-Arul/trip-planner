@@ -872,7 +872,18 @@ function getPriceLevel(level) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("form").addEventListener("submit", calculateRoute);
+  document.getElementById("form").addEventListener("submit", function (event) {
+
+      calculateRoute(event);
+
+      document.querySelectorAll("#sidebar button").forEach(button => {
+          button.classList.remove("active");
+      });
+
+      document.getElementById("route-toggle").classList.add("active");
+
+      document.getElementById("route-sidebar").classList.add("show");
+  });
   loadGoogleMapsApi();
   
   document.getElementById("traffic-toggle").addEventListener("change", function() {
@@ -1073,19 +1084,5 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.classList.toggle("active");
       });
     }
-    document.getElementById("form").addEventListener("submit", function(event) {
-
-      event.preventDefault();
-      
-      document.querySelectorAll("#sidebar button").forEach(button => {
-          button.classList.remove("active");
-      });
-    
-      document.getElementById("route-toggle").classList.add("active");
-
-      document.getElementById("route-sidebar").classList.add("show");
-
-      calculateRoute();
-    });
   });
 });
