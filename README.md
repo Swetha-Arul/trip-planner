@@ -1,8 +1,14 @@
 # Trip Planner 🗺️
+![PHP](https://img.shields.io/badge/PHP-8.2-blue)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
+![AWS](https://img.shields.io/badge/AWS-EC2-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 Trip Planner is a modern travel planning web application designed to make road trips smarter, easier, and more interactive. Users can generate optimized routes, explore nearby places, monitor live weather conditions, and navigate using an interactive Google Maps interface with real-time guidance.
 
 Built using HTML, CSS, JavaScript, PHP, MySQL, Google Maps APIs, and OpenWeather API.
+<img width="2856" height="1456" alt="HomePage" src="https://github.com/user-attachments/assets/3d8efabc-e0ac-4a9a-acdc-cda691a33f05" />
+
 
 
 ## ✨ Features
@@ -43,6 +49,22 @@ Built using HTML, CSS, JavaScript, PHP, MySQL, Google Maps APIs, and OpenWeather
 - MySQL database integration
 
 ---
+## Screenshots
+
+<img width="2870" height="1464" alt="Signup page" src="https://github.com/user-attachments/assets/5b020a35-0880-4ebe-8edb-ed5cea3a42ee" /> 
+
+> *Sign up Page*
+---
+
+<img width="2880" height="1348" alt="map" src="https://github.com/user-attachments/assets/1c8c0b6b-af57-45d9-b052-1b1b1dafd8fb" />
+
+> *Map*
+---
+
+<img width="2862" height="1314" alt="filters" src="https://github.com/user-attachments/assets/e1f7ba85-20c5-43b6-91f5-667979bd495b" />
+
+> *filters*
+---
 
 ## 🛠️ Tech Stack
 
@@ -53,21 +75,65 @@ Built using HTML, CSS, JavaScript, PHP, MySQL, Google Maps APIs, and OpenWeather
 
 ### Backend
 - PHP
+- Composer
+- `vlucas/phpdotenv`
 
 ### Database
-- MySQL
+- MariaDB
 
-### APIs Used
+### APIs
 - Google Maps JavaScript API
 - Google Places API
 - Google Directions API
 - OpenWeather API
 
+### DevOps & Deployment
+- Docker
+- Docker Compose
+- Apache
+- AWS EC2
+
+---
+## 🏗️ Architecture
+
+```text
+                     ┌─────────────────────┐
+                     │       Browser       │
+                     │  HTML / CSS / JS    │
+                     └──────────┬──────────┘
+                                │
+              ┌─────────────────┼─────────────────┐
+              │                 │                 │
+              ▼                 ▼                 ▼
+       Google Maps API    OpenWeather API    PHP Backend
+                                                │
+                                                ▼
+                                           MariaDB
+```
+
+### Docker Deployment
+
+```text
+AWS EC2
+│
+└── Docker Compose
+    │
+    ├── tripplanner-app
+    │   ├── Apache
+    │   ├── PHP
+    │   └── Trip Planner
+    │
+    └── tripplanner-db
+        └── MariaDB
+```
+
+Docker Compose manages the application and database containers, their networking, and persistent database storage.
+
 ---
 
 ## 📂 Project Structure
 
-```bash
+```text
 trip-planner/
 │
 ├── Backend/
@@ -84,96 +150,89 @@ trip-planner/
 │   └── map.js
 │
 ├── darkmode/
-│   ├── darkmode.css
-│   ├── darkmode.js
-│   └── darkmodemap.js
 │
 ├── signuplogin/
 │
-├── screenshots/
+├── database/
+│   └── init.sql
 │
 ├── pics/
 │
+├── screenshots/
+│
+├── Dockerfile
+├── docker-compose.yml
+├── composer.json
+├── composer.lock
 ├── config.sample.js
 └── README.md
 ```
 
 ---
 
-## ▶️ Running the Project with XAMPP
+## 🐳 Running with Docker
 
-### 1️⃣ Move Project Folder
+### Prerequisites
 
-Move the project into your XAMPP `htdocs` directory:
+Install:
+
+- Docker
+- Docker Compose
+- Git
+
+---
+
+### 1. Clone the Repository
 
 ```bash
-C:\xampp\htdocs\trip-planner
+git clone https://github.com/Swetha-Arul/trip-planner.git
+cd trip-planner
 ```
 
 ---
 
-### 2️⃣ Start Apache and MySQL
+### 2. Configure Environment Variables
 
-Open the XAMPP Control Panel and start:
+Create a `.env` file in the project root:
 
-- Apache
-- MySQL
+```env
+DB_HOST=db
+DB_NAME=RoadTrip
+DB_USER=root
+DB_PASSWORD=your_password_here
+```
+
+The database password must match the MariaDB root password configured for Docker Compose.
+
+> `.env` should not be committed to the repository.
 
 ---
 
-### 3️⃣ Create Database
+### 3. Configure MariaDB
 
-Open:
+In `docker-compose.yml`, set your own MariaDB root password:
 
-```bash
-http://localhost/phpmyadmin
+```yaml
+environment:
+  MYSQL_ROOT_PASSWORD: rootpassword 
+  MYSQL_DATABASE: RoadTrip
 ```
 
-Create a database named:
-
-```bash
-trip_planner
-```
-
-Run this SQL query:
-
-```sql
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    username VARCHAR(100),
-    email VARCHAR(100) UNIQUE,
-    password VARCHAR(255)
-);
-```
+Make sure this password matches `DB_PASSWORD` in `.env`.
 
 ---
 
-### 4️⃣ Configure Database Credentials
+### 4. Configure API Keys
 
-Inside:
+Copy:
 
-```bash
-Backend/login.php
-Backend/signup.php
+```text
+config.sample.js
 ```
 
-Replace the placeholder values:
+and create:
 
-```php
-$dbPassword = "YourPassword";
-$dbname = "YourDatabaseName";
-```
-
-with your actual MySQL database credentials.
-
----
-
-### 5️⃣ Configure API Keys
-
-Create a file named:
-
-```bash
+```text
 config.js
 ```
 
@@ -184,39 +243,107 @@ const GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY";
 const WEATHER_API_KEY = "YOUR_OPENWEATHER_API_KEY";
 ```
 
+> Do not commit `config.js` containing real API keys.
+
 ---
 
-### 6️⃣ Run the Application
-
-Open in browser:
+### 5. Install PHP Dependencies
 
 ```bash
-http://localhost/trip-planner/Mainpage/MainPage.html
+composer install
+```
+
+This installs the dependencies defined in `composer.json`, including `vlucas/phpdotenv`.
+
+---
+
+### 6. Build and Start
+
+```bash
+docker compose up -d --build
+```
+
+The application will be available through port `80`.
+
+Open:
+
+```text
+http://localhost/Mainpage/MainPage.html
 ```
 
 ---
 
-## 📸 Highlights
+### 7. Stop the Application
 
-- Interactive Google Maps integration
-- Dark mode support
-- Responsive UI
-- Real-time navigation
-- Route preference customization
-- Nearby places discovery
-- Weather-aware trip planning
-- Authentication system
+```bash
+docker compose down
+```
+
+To remove the database volume as well:
+
+```bash
+docker compose down -v
+```
+
+> Removing the volume deletes the stored database data.
+
+---
+
+## ☁️ Deployment
+
+Trip Planner has been containerized using Docker Compose and deployed on an AWS EC2 instance.
+
+The deployment consists of two Docker containers:
+
+- **Application Container** — Apache + PHP + application files
+- **Database Container** — MariaDB
+
+Docker networking allows the PHP application to communicate with MariaDB internally using:
+
+```text
+DB_HOST=db
+```
+
+The application container exposes port `80` for HTTP access, while the MariaDB port is kept internal to the Docker network.
+
+---
+
+## 🔒 Security
+
+The project includes several basic security practices:
+
+- Passwords are hashed using PHP `password_hash()`
+- Login verification uses `password_verify()`
+- Database queries use prepared statements
+- Database credentials are loaded through environment variables
+- `.env` is excluded from version control
+- API credentials can be excluded using `config.js`
+- MariaDB is not directly exposed publicly in the Docker deployment
+
+API keys used by browser-side JavaScript should additionally be restricted through their respective API provider settings.
+
+---
+
+## ⚠️ Known Limitations
+
+- Nearby place results depend on the results returned by the external APIs and do not represent every possible establishment in an area.
+- Weather-based route preferences are relatively basic.
+- The application is a project/demo deployment rather than a production-scale navigation service.
+- HTTPS is not currently configured for the EC2 deployment.
+- API keys must be configured separately before map and weather functionality can be used.
 
 ---
 
 ## 🚀 Future Improvements
 
+- HTTPS support
+- Saved trips and trip history
 - AI-based trip recommendations
-- Saved trip history
 - Expense tracking
 - Collaborative trip planning
-- Public transport integration
-- Real-time travel assistant
+- Improved route optimization
+- CI/CD using GitHub Actions
+- Improved mobile compatibility
 
 ---
 
@@ -225,9 +352,10 @@ http://localhost/trip-planner/Mainpage/MainPage.html
 Contributions are welcome.
 
 1. Fork the repository
-2. Create a new branch
+2. Create a feature branch
 3. Commit your changes
-4. Open a Pull Request
+4. Push the branch
+5. Open a Pull Request
 
 ---
 
@@ -236,7 +364,3 @@ Contributions are welcome.
 This project is licensed under the MIT License.
 
 ---
-
-## 👩‍💻 Developer
-
-Created by [Swetha-Arul](https://github.com/Swetha-Arul)
